@@ -74,6 +74,16 @@
       <label>URL logo (iconita rotunda pentru bula de chat)</label>
       <input type="text" id="logoUrl" placeholder="/logo-icon.jpg" />
       <p style="font-size:12px;color:#777;margin:4px 0 0;">Urca fisierul logo-ului in folderul <code>public/</code> al proiectului (langa <code>admin.html</code>), apoi scrie aici calea, ex: <code>/logo-icon.jpg</code>. Poate fi si un URL complet catre o imagine gazduita in alta parte.</p>
+      <label>Culoare widget</label>
+      <div class="row" style="align-items:center;">
+        <div style="flex:0 0 auto;">
+          <input type="color" id="widgetColor" value="#2563eb" style="width:52px;height:38px;padding:2px;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;" />
+        </div>
+        <div style="flex:1;">
+          <input type="text" id="widgetColorHex" placeholder="#2563eb" />
+        </div>
+      </div>
+      <p style="font-size:12px;color:#777;margin:4px 0 0;">Culoarea principala a bulei de chat (buton, antet, mesajele vizitatorului).</p>
       <button id="saveSettingsBtn">Salveaza setarile</button>
       <div id="settingsMsg"></div>
     </section>
@@ -183,9 +193,22 @@
       document.getElementById("tone").value = s.tone || "";
       document.getElementById("language").value = s.language || "";
       document.getElementById("logoUrl").value = s.logoUrl || "";
+      document.getElementById("widgetColor").value = s.color || "#2563eb";
+      document.getElementById("widgetColorHex").value = s.color || "#2563eb";
       buildEmbedCode();
     });
   }
+
+  document.getElementById("widgetColor").addEventListener("input", function () {
+    document.getElementById("widgetColorHex").value = this.value;
+    buildEmbedCode();
+  });
+  document.getElementById("widgetColorHex").addEventListener("input", function () {
+    if (/^#[0-9a-fA-F]{6}$/.test(this.value)) {
+      document.getElementById("widgetColor").value = this.value;
+    }
+    buildEmbedCode();
+  });
 
   document.getElementById("saveSettingsBtn").addEventListener("click", function () {
     var body = {
@@ -195,6 +218,7 @@
       tone: document.getElementById("tone").value,
       language: document.getElementById("language").value,
       logoUrl: document.getElementById("logoUrl").value,
+      color: document.getElementById("widgetColorHex").value,
     };
     api("/api/admin/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function () { showMsg("settingsMsg", "Setari salvate.", true); buildEmbedCode(); })
@@ -325,13 +349,14 @@
     var greeting = document.getElementById("greeting").value || "Buna! Cu ce te pot ajuta astazi?";
     var logoUrl = document.getElementById("logoUrl").value.trim();
     var absoluteLogoUrl = logoUrl && logoUrl.indexOf("http") !== 0 ? origin + (logoUrl.indexOf("/") === 0 ? logoUrl : "/" + logoUrl) : logoUrl;
+    var color = document.getElementById("widgetColorHex").value.trim() || "#2563eb";
     var code =
       '<script src="' + origin + '/widget.js"\n' +
       '  data-api-url="' + origin + '"\n' +
       '  data-name="' + name.replace(/"/g, "&quot;") + '"\n' +
       '  data-greeting="' + greeting.replace(/"/g, "&quot;") + '"\n' +
       (absoluteLogoUrl ? '  data-logo-url="' + absoluteLogoUrl.replace(/"/g, "&quot;") + '"\n' : "") +
-      '  data-color="#2563eb"></' + "script>";
+      '  data-color="' + color.replace(/"/g, "&quot;") + '"></' + "script>";
     document.getElementById("embedCode").textContent = code;
   }
 

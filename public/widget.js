@@ -12,6 +12,11 @@
   }
 
   var API_URL = cfg.apiUrl || attr("data-api-url", (currentScript ? new URL(currentScript.src).origin : ""));
+  // Valorile de mai jos sunt folosite doar ca fallback instant, cat timp se
+  // incarca setarile curente de la server (vezi loadConfigAndMount) - astfel,
+  // daca proprietarul schimba numele/culoarea/logo-ul din panoul de admin,
+  // widget-ul de pe site le preia automat, fara sa mai fie nevoie sa
+  // regenereze si sa re-lipeasca codul de instalare.
   var BOT_NAME = cfg.botName || attr("data-name", "Asistent virtual");
   var ACCENT = cfg.color || attr("data-color", "#2563eb");
   var GREETING = cfg.greeting || attr("data-greeting", "Buna! Cu ce te pot ajuta astazi?");
@@ -35,9 +40,48 @@
 
   var host = document.createElement("div");
   host.id = "site-chatbot-widget-host";
-  document.addEventListener("DOMContentLoaded", mount);
+
+  function loadConfigAndMount() {
+    if (document.getElementById("site-chatbot-widget-host")) return;
+    if (!API_URL) {
+      mount();
+      return;
+    }
+    var done = false;
+    var timeoutId = setTimeout(function () {
+      if (!done) {
+        done = true;
+        mount();
+      }
+    }, 2500);
+
+    fetch(API_URL.replace(/\/$/, "") + "/api/widget-config")
+      .then(function (r) {
+        return r.ok ? r.json() : null;
+      })
+      .then(function (remote) {
+        if (done) return;
+        done = true;
+        clearTimeout(timeoutId);
+        if (remote) {
+          if (remote.businessName) BOT_NAME = remote.businessName;
+          if (remote.color) ACCENT = remote.color;
+          if (remote.greeting) GREETING = remote.greeting;
+          if (remote.logoUrl) LOGO_URL = remote.logoUrl;
+        }
+        mount();
+      })
+      .catch(function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timeoutId);
+        mount();
+      });
+  }
+
+  document.addEventListener("DOMContentLoaded", loadConfigAndMount);
   if (document.readyState === "complete" || document.readyState === "interactive") {
-    mount();
+    loadConfigAndMount();
   }
 
   function mount() {

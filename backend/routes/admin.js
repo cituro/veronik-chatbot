@@ -28,8 +28,8 @@ router.get("/settings", requireAdmin, (req, res) => {
 });
 
 router.post("/settings", requireAdmin, (req, res) => {
-  const { businessName, businessDescription, greeting, tone, language, logoUrl } = req.body || {};
-  const updated = store.updateSettings({ businessName, businessDescription, greeting, tone, language, logoUrl });
+  const { businessName, businessDescription, greeting, tone, language, logoUrl, color } = req.body || {};
+  const updated = store.updateSettings({ businessName, businessDescription, greeting, tone, language, logoUrl, color });
   res.json(updated);
 });
 

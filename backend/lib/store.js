@@ -44,6 +44,7 @@ class KnowledgeStore {
       tone: this.data.settings.tone || "prietenos si profesionist",
       language: this.data.settings.language || "romana",
       logoUrl: this.data.settings.logoUrl || "",
+      color: this.data.settings.color || "#2563eb",
     };
   }
 
