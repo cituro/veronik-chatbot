@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Administrare Chatbot</title>
+<style>
+  :root { --accent:#2563eb; --bg:#f7f8fa; --border:#e5e7eb; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; background:var(--bg); color:#111; }
+  header { background:#111827; color:#fff; padding:16px 24px; }
+  header h1 { margin:0; font-size:18px; }
+  main { max-width:900px; margin:24px auto; padding:0 16px 60px; }
+  section { background:#fff; border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; }
+  section h2 { margin-top:0; font-size:16px; }
+  label { display:block; font-size:13px; font-weight:600; margin:10px 0 4px; }
+  input[type=text], input[type=password], input[type=url], textarea, select {
+    width:100%; padding:9px 10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; font-family:inherit;
+  }
+  textarea { min-height:80px; resize:vertical; }
+  button { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:9px 16px; font-size:14px; cursor:pointer; margin-top:12px; }
+  button.secondary { background:#6b7280; }
+  button.danger { background:#dc2626; }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; }
+  .row > div { flex:1; min-width:140px; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--border); }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:11px; }
+  .msg { font-size:13px; margin-top:10px; padding:8px 10px; border-radius:8px; }
+  .msg.ok { background:#ecfdf5; color:#065f46; }
+  .msg.err { background:#fef2f2; color:#991b1b; }
+  #loginScreen { max-width:360px; margin:80px auto; }
+  .hidden { display:none; }
+  code { background:#f3f4f6; padding:1px 5px; border-radius:4px; }
+  .embed-box { background:#111827; color:#d1fae5; padding:14px; border-radius:8px; font-size:12px; overflow-x:auto; white-space:pre; }
+</style>
+</head>
+<body>
+
+<header><h1>Administrare Chatbot site</h1></header>
+
+<main>
+  <section id="loginScreen">
+    <h2>Autentificare</h2>
+    <label>Parola de administrare</label>
+    <input type="password" id="adminPassword" placeholder="Parola din fisierul .env (ADMIN_PASSWORD)" />
+    <button id="loginBtn">Intra</button>
+    <div id="loginMsg"></div>
+  </section>
+
+  <div id="appScreen" class="hidden">
+
+    <section>
+      <h2>1. Setari despre afacere</h2>
+      <label>Nume afacere</label>
+      <input type="text" id="businessName" placeholder="ex: Imob Prime Real Estate" />
+      <label>Descriere afacere (servicii, produse, ce trebuie sa stie botul)</label>
+      <textarea id="businessDescription" placeholder="ex: Agentie imobiliara specializata in vanzari si inchirieri de apartamente in Bucuresti..."></textarea>
+      <div class="row">
+        <div>
+          <label>Mesaj de intampinare</label>
+          <input type="text" id="greeting" placeholder="Buna! Cu ce te pot ajuta?" />
+        </div>
+        <div>
+          <label>Ton conversatie</label>
+          <input type="text" id="tone" placeholder="prietenos si profesionist" />
+        </div>
+        <div>
+          <label>Limba implicita</label>
+          <input type="text" id="language" placeholder="romana" />
+        </div>
+      </div>
+      <label>URL logo (iconita rotunda pentru bula de chat)</label>
+      <input type="text" id="logoUrl" placeholder="/logo-icon.jpg" />
+      <p style="font-size:12px;color:#777;margin:4px 0 0;">Urca fisierul logo-ului in folderul <code>public/</code> al proiectului (langa <code>admin.html</code>), apoi scrie aici calea, ex: <code>/logo-icon.jpg</code>. Poate fi si un URL complet catre o imagine gazduita in alta parte.</p>
+      <button id="saveSettingsBtn">Salveaza setarile</button>
+      <div id="settingsMsg"></div>
+    </section>
+
+    <section>
+      <h2>2. Incarca documentatie (memoria botului)</h2>
+      <p style="font-size:13px;color:#555;">Accepta fisiere .txt, .md, .csv, .pdf, .docx. Continutul este spart automat in fragmente si folosit pentru a raspunde vizitatorilor.</p>
+      <input type="file" id="fileInput" multiple accept=".txt,.md,.csv,.pdf,.docx" />
+      <button id="uploadBtn">Incarca fisiere</button>
+      <div id="uploadMsg"></div>
+    </section>
+
+    <section>
+      <h2>3. Scaneaza site-ul</h2>
+      <p style="font-size:13px;color:#555;">Introdu adresa site-ului. Vom parcurge paginile interne (acelasi domeniu) si vom extrage textul relevant.</p>
+      <div class="row">
+        <div style="flex:3;">
+          <label>URL site</label>
+          <input type="url" id="scanUrl" placeholder="https://www.site-ul-tau.ro" />
+        </div>
+        <div>
+          <label>Max pagini</label>
+          <input type="text" id="scanMaxPages" value="15" />
+        </div>
+        <div>
+          <label>Adancime</label>
+          <input type="text" id="scanMaxDepth" value="2" />
+        </div>
+      </div>
+      <button id="scanBtn">Scaneaza site-ul</button>
+      <div id="scanMsg"></div>
+    </section>
+
+    <section>
+      <h2>4. Surse in baza de cunostinte</h2>
+      <button class="secondary" id="refreshBtn">Reincarca lista</button>
+      <button class="danger" id="clearAllBtn">Sterge tot</button>
+      <table id="sourcesTable">
+        <thead><tr><th>Tip</th><th>Nume / URL</th><th>Fragmente</th><th>Adaugat</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p id="totalChunks" style="font-size:13px;color:#555;"></p>
+    </section>
+
+    <section>
+      <h2>5. Adauga widget-ul pe site</h2>
+      <p style="font-size:13px;color:#555;">Copiaza acest cod inainte de <code>&lt;/body&gt;</code> in site-ul tau:</p>
+      <div class="embed-box" id="embedCode"></div>
+    </section>
+
+    <section>
+      <h2>6. Cereri de trial / abonament</h2>
+      <p style="font-size:13px;color:#555;">Cererile trimise din formularul de pe landing page (veronik.ro).</p>
+      <button class="secondary" id="refreshLeadsBtn">Reincarca lista</button>
+      <table id="leadsTable">
+        <thead><tr><th>Nume</th><th>Email</th><th>Site</th><th>Plan</th><th>Mesaj</th><th>Status</th><th>Primit</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p id="leadsEmpty" style="font-size:13px;color:#555;"></p>
+    </section>
+
+  </div>
+</main>
+
+<script>
+  var API = "";
+  var adminPassword = sessionStorage.getItem("scb_admin_pw") || "";
+
+  function api(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "x-admin-password": adminPassword }, opts.headers || {});
+    return fetch(API + path, opts).then(function (r) {
+      return r.json().then(function (data) {
+        if (!r.ok) throw new Error(data.error || "Eroare necunoscuta");
+        return data;
+      });
+    });
+  }
+
+  function showMsg(elId, text, ok) {
+    var el = document.getElementById(elId);
+    el.textContent = text;
+    el.className = "msg " + (ok ? "ok" : "err");
+    setTimeout(function () { el.textContent = ""; el.className = ""; }, 6000);
+  }
+
+  document.getElementById("loginBtn").addEventListener("click", function () {
+    adminPassword = document.getElementById("adminPassword").value;
+    api("/api/admin/login", { method: "POST" })
+      .then(function () {
+        sessionStorage.setItem("scb_admin_pw", adminPassword);
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("appScreen").classList.remove("hidden");
+        loadSettings();
+        loadSources();
+        loadLeads();
+        buildEmbedCode();
+      })
+      .catch(function (err) { showMsg("loginMsg", err.message, false); });
+  });
+
+  function loadSettings() {
+    api("/api/admin/settings").then(function (s) {
+      document.getElementById("businessName").value = s.businessName || "";
+      document.getElementById("businessDescription").value = s.businessDescription || "";
+      document.getElementById("greeting").value = s.greeting || "";
+      document.getElementById("tone").value = s.tone || "";
+      document.getElementById("language").value = s.language || "";
+      document.getElementById("logoUrl").value = s.logoUrl || "";
+      buildEmbedCode();
+    });
+  }
+
+  document.getElementById("saveSettingsBtn").addEventListener("click", function () {
+    var body = {
+      businessName: document.getElementById("businessName").value,
+      businessDescription: document.getElementById("businessDescription").value,
+      greeting: document.getElementById("greeting").value,
+      tone: document.getElementById("tone").value,
+      language: document.getElementById("language").value,
+      logoUrl: document.getElementById("logoUrl").value,
+    };
+    api("/api/admin/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function () { showMsg("settingsMsg", "Setari salvate.", true); buildEmbedCode(); })
+      .catch(function (err) { showMsg("settingsMsg", err.message, false); });
+  });
+
+  document.getElementById("uploadBtn").addEventListener("click", function () {
+    var files = document.getElementById("fileInput").files;
+    if (!files.length) { showMsg("uploadMsg", "Selecteaza cel putin un fisier.", false); return; }
+    var fd = new FormData();
+    for (var i = 0; i < files.length; i++) fd.append("files", files[i]);
+    document.getElementById("uploadBtn").disabled = true;
+    api("/api/admin/upload", { method: "POST", body: fd })
+      .then(function (data) {
+        var failed = data.results.filter(function (r) { return !r.ok; });
+        if (failed.length) {
+          showMsg("uploadMsg", "Incarcat cu erori: " + failed.map(function(f){return f.file + " (" + f.error + ")";}).join(", "), false);
+        } else {
+          showMsg("uploadMsg", "Incarcat cu succes. Total fragmente in baza: " + data.totalChunks, true);
+        }
+        loadSources();
+      })
+      .catch(function (err) { showMsg("uploadMsg", err.message, false); })
+      .finally(function () { document.getElementById("uploadBtn").disabled = false; });
+  });
+
+  document.getElementById("scanBtn").addEventListener("click", function () {
+    var url = document.getElementById("scanUrl").value.trim();
+    if (!url) { showMsg("scanMsg", "Introdu un URL.", false); return; }
+    var body = {
+      url: url,
+      maxPages: document.getElementById("scanMaxPages").value,
+      maxDepth: document.getElementById("scanMaxDepth").value,
+    };
+    document.getElementById("scanBtn").disabled = true;
+    showMsg("scanMsg", "Se scaneaza site-ul, te rog asteapta...", true);
+    api("/api/admin/scan-site", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (data) {
+        showMsg("scanMsg", "Scanate " + data.pagesScanned + " pagini. Total fragmente in baza: " + data.totalChunks, true);
+        loadSources();
+      })
+      .catch(function (err) { showMsg("scanMsg", err.message, false); })
+      .finally(function () { document.getElementById("scanBtn").disabled = false; });
+  });
+
+  function loadSources() {
+    api("/api/admin/sources").then(function (data) {
+      var tbody = document.querySelector("#sourcesTable tbody");
+      tbody.innerHTML = "";
+      data.sources.forEach(function (s) {
+        var tr = document.createElement("tr");
+        tr.innerHTML =
+          "<td><span class='pill'>" + (s.type === "webpage" ? "site" : "document") + "</span></td>" +
+          "<td>" + escapeHtml(s.label || s.origin) + "</td>" +
+          "<td>" + s.chunkCount + "</td>" +
+          "<td>" + new Date(s.addedAt).toLocaleString("ro-RO") + "</td>" +
+          "<td><button class='danger' data-id='" + s.id + "'>Sterge</button></td>";
+        tbody.appendChild(tr);
+      });
+      document.getElementById("totalChunks").textContent = "Total fragmente in baza de cunostinte: " + data.totalChunks;
+      tbody.querySelectorAll("button.danger").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          api("/api/admin/sources/" + encodeURIComponent(btn.dataset.id), { method: "DELETE" }).then(loadSources);
+        });
+      });
+    });
+  }
+
+  document.getElementById("refreshBtn").addEventListener("click", loadSources);
+  document.getElementById("clearAllBtn").addEventListener("click", function () {
+    if (!confirm("Sigur vrei sa stergi toata baza de cunostinte?")) return;
+    api("/api/admin/clear", { method: "POST" }).then(loadSources);
+  });
+
+  var PLAN_LABELS = { trial: "Trial", start: "Start", business: "Business" };
+  var STATUS_OPTIONS = ["nou", "contactat", "activat", "respins"];
+
+  function loadLeads() {
+    api("/api/admin/leads").then(function (data) {
+      var tbody = document.querySelector("#leadsTable tbody");
+      tbody.innerHTML = "";
+      data.leads.forEach(function (lead) {
+        var tr = document.createElement("tr");
+        var statusOptions = STATUS_OPTIONS.map(function (s) {
+          return "<option value='" + s + "'" + (s === lead.status ? " selected" : "") + ">" + s + "</option>";
+        }).join("");
+        tr.innerHTML =
+          "<td>" + escapeHtml(lead.name) + "</td>" +
+          "<td><a href='mailto:" + escapeHtml(lead.email) + "'>" + escapeHtml(lead.email) + "</a></td>" +
+          "<td>" + escapeHtml(lead.siteUrl || "-") + "</td>" +
+          "<td><span class='pill'>" + (PLAN_LABELS[lead.plan] || lead.plan) + "</span></td>" +
+          "<td style='max-width:220px;'>" + escapeHtml(lead.message || "-") + "</td>" +
+          "<td><select data-id='" + lead.id + "'>" + statusOptions + "</select></td>" +
+          "<td>" + new Date(lead.createdAt).toLocaleString("ro-RO") + "</td>" +
+          "<td><button class='danger' data-id='" + lead.id + "'>Sterge</button></td>";
+        tbody.appendChild(tr);
+      });
+      document.getElementById("leadsEmpty").textContent = data.leads.length === 0 ? "Nicio cerere primita inca." : "Total cereri: " + data.leads.length;
+      tbody.querySelectorAll("select").forEach(function (sel) {
+        sel.addEventListener("change", function () {
+          api("/api/admin/leads/" + encodeURIComponent(sel.dataset.id), {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: sel.value }),
+          });
+        });
+      });
+      tbody.querySelectorAll("button.danger").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          if (!confirm("Stergi aceasta cerere?")) return;
+          api("/api/admin/leads/" + encodeURIComponent(btn.dataset.id), { method: "DELETE" }).then(loadLeads);
+        });
+      });
+    });
+  }
+
+  document.getElementById("refreshLeadsBtn").addEventListener("click", loadLeads);
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function buildEmbedCode() {
+    var origin = window.location.origin;
+    var name = document.getElementById("businessName").value || "Asistent virtual";
+    var greeting = document.getElementById("greeting").value || "Buna! Cu ce te pot ajuta astazi?";
+    var logoUrl = document.getElementById("logoUrl").value.trim();
+    var absoluteLogoUrl = logoUrl && logoUrl.indexOf("http") !== 0 ? origin + (logoUrl.indexOf("/") === 0 ? logoUrl : "/" + logoUrl) : logoUrl;
+    var code =
+      '<script src="' + origin + '/widget.js"\n' +
+      '  data-api-url="' + origin + '"\n' +
+      '  data-name="' + name.replace(/"/g, "&quot;") + '"\n' +
+      '  data-greeting="' + greeting.replace(/"/g, "&quot;") + '"\n' +
+      (absoluteLogoUrl ? '  data-logo-url="' + absoluteLogoUrl.replace(/"/g, "&quot;") + '"\n' : "") +
+      '  data-color="#2563eb"></' + "script>";
+    document.getElementById("embedCode").textContent = code;
+  }
+
+  // Auto-login daca avem parola salvata in aceasta sesiune de browser
+  if (adminPassword) {
+    document.getElementById("adminPassword").value = adminPassword;
+    document.getElementById("loginBtn").click();
+  }
+</script>
+</body>
+</html>
