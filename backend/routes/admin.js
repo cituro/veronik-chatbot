@@ -30,8 +30,16 @@ router.get("/settings", requireAdmin, (req, res) => {
 });
 
 router.post("/settings", requireAdmin, (req, res) => {
-  const { businessName, businessDescription, greeting, tone, language, logoUrl, color } = req.body || {};
-  const updated = store.updateSettings({ businessName, businessDescription, greeting, tone, language, logoUrl, color });
+  const { businessName, businessDescription, greeting, tone, language, logoUrl, position } = req.body || {};
+  const updated = store.updateSettings({
+    businessName,
+    businessDescription,
+    greeting,
+    tone,
+    language,
+    logoUrl,
+    position: position === "left" ? "left" : "right",
+  });
   res.json(updated);
 });
 

@@ -12,15 +12,20 @@
   }
 
   var API_URL = cfg.apiUrl || attr("data-api-url", (currentScript ? new URL(currentScript.src).origin : ""));
+  // Culoarea e fixa (brand Veronik) pe toate instantele - nu mai e
+  // personalizabila din panoul de admin. Ramane totusi suprascriabila direct
+  // din codul de instalare (data-color), ca eventuala exceptie tehnica, nu ca
+  // optiune oferita clientului.
+  var ACCENT = cfg.color || attr("data-color", "#3D5AFE");
   // Valorile de mai jos sunt folosite doar ca fallback instant, cat timp se
   // incarca setarile curente de la server (vezi loadConfigAndMount) - astfel,
-  // daca proprietarul schimba numele/culoarea/logo-ul din panoul de admin,
+  // daca proprietarul schimba numele/logo-ul/pozitia din panoul de admin,
   // widget-ul de pe site le preia automat, fara sa mai fie nevoie sa
   // regenereze si sa re-lipeasca codul de instalare.
   var BOT_NAME = cfg.botName || attr("data-name", "Asistent virtual");
-  var ACCENT = cfg.color || attr("data-color", "#2563eb");
   var GREETING = cfg.greeting || attr("data-greeting", "Buna! Cu ce te pot ajuta astazi?");
   var LOGO_URL = cfg.logoUrl || attr("data-logo-url", "");
+  var POSITION = cfg.position || attr("data-position", "right"); // "right" sau "left"
   var STORAGE_KEY = "site_chatbot_session_id";
   var HISTORY_KEY = "site_chatbot_history";
   var MAX_STORED_TURNS = 40; // 20 schimburi user+assistant
@@ -87,9 +92,9 @@
         clearTimeout(timeoutId);
         if (remote) {
           if (remote.businessName) BOT_NAME = remote.businessName;
-          if (remote.color) ACCENT = remote.color;
           if (remote.greeting) GREETING = remote.greeting;
           if (remote.logoUrl) LOGO_URL = remote.logoUrl;
+          if (remote.position === "left" || remote.position === "right") POSITION = remote.position;
         }
         mount();
       })
@@ -111,10 +116,12 @@
     document.body.appendChild(host);
     var shadow = host.attachShadow({ mode: "open" });
 
+    var SIDE = POSITION === "left" ? "left" : "right";
+
     var style = document.createElement("style");
     style.textContent =
       ':host{all:initial;}' +
-      '.scb-launcher{position:fixed;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;' +
+      '.scb-launcher{position:fixed;bottom:20px;' + SIDE + ':20px;width:60px;height:60px;border-radius:50%;' +
       "background:" + ACCENT + ";box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;display:flex;" +
       "align-items:center;justify-content:center;z-index:2147483000;border:none;transition:transform .15s ease;}" +
       ".scb-launcher:hover{transform:scale(1.06);}" +
@@ -125,7 +132,7 @@
       "@media (prefers-reduced-motion: reduce){.scb-launcher-ring{animation:none;display:none;}}" +
       ".scb-header-logo{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;}" +
       ".scb-header-text{display:flex;align-items:center;gap:10px;}" +
-      ".scb-panel{position:fixed;bottom:92px;right:20px;width:360px;max-width:92vw;height:520px;max-height:75vh;" +
+      ".scb-panel{position:fixed;bottom:92px;" + SIDE + ":20px;width:360px;max-width:92vw;height:520px;max-height:75vh;" +
       "background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.25);display:none;flex-direction:column;" +
       "overflow:hidden;z-index:2147483000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;}" +
       ".scb-panel.open{display:flex;}" +

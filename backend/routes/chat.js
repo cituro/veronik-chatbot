@@ -10,7 +10,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_PLANS = new Set(["trial", "start", "business"]);
 
 // Endpoint public (fara autentificare) - widget.js il apeleaza la incarcare
-// ca sa preia numele, culoarea, mesajul de intampinare si logo-ul curente,
+// ca sa preia numele, mesajul de intampinare, logo-ul si pozitia curente,
 // direct din panoul de admin, fara sa mai fie nevoie sa se regenereze codul
 // de instalare de fiecare data cand clientul isi schimba setarile.
 router.get("/widget-config", (req, res) => {
@@ -18,8 +18,8 @@ router.get("/widget-config", (req, res) => {
   res.json({
     businessName: settings.businessName,
     greeting: settings.greeting,
-    color: settings.color,
     logoUrl: settings.logoUrl,
+    position: settings.position,
   });
 });
 

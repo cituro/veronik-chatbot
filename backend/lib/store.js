@@ -44,7 +44,9 @@ class KnowledgeStore {
       tone: this.data.settings.tone || "prietenos si profesionist",
       language: this.data.settings.language || "romana",
       logoUrl: this.data.settings.logoUrl || "",
-      color: this.data.settings.color || "#2563eb",
+      // pozitia bulei de chat pe ecran - singura personalizare vizuala lasata
+      // la alegerea clientului (culoarea e fixa, brand Veronik, pe toate instantele)
+      position: this.data.settings.position === "left" ? "left" : "right",
     };
   }
 
