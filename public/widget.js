@@ -118,8 +118,11 @@
       "background:" + ACCENT + ";box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;display:flex;" +
       "align-items:center;justify-content:center;z-index:2147483000;border:none;transition:transform .15s ease;}" +
       ".scb-launcher:hover{transform:scale(1.06);}" +
-      ".scb-launcher svg{width:28px;height:28px;fill:#fff;}" +
-      ".scb-launcher img{width:100%;height:100%;border-radius:50%;object-fit:cover;}" +
+      ".scb-launcher svg{width:28px;height:28px;fill:#fff;position:relative;z-index:1;}" +
+      ".scb-launcher-ring{position:absolute;inset:0;border-radius:50%;background:" + ACCENT + ";" +
+      "animation:scbPulse 2.6s ease-out infinite;}" +
+      "@keyframes scbPulse{0%{transform:scale(1);opacity:.55;}70%{transform:scale(1.55);opacity:0;}100%{transform:scale(1.55);opacity:0;}}" +
+      "@media (prefers-reduced-motion: reduce){.scb-launcher-ring{animation:none;display:none;}}" +
       ".scb-header-logo{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;}" +
       ".scb-header-text{display:flex;align-items:center;gap:10px;}" +
       ".scb-panel{position:fixed;bottom:92px;right:20px;width:360px;max-width:92vw;height:520px;max-height:75vh;" +
@@ -150,20 +153,13 @@
     var SVG_ICON =
       '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.02 2 11c0 2.6 1.23 4.94 3.2 6.6L4 22l4.66-1.53C9.7 20.8 10.83 21 12 21c5.52 0 10-4.02 10-9s-4.48-10-10-10z"/></svg>';
 
+    // Bula flotanta foloseste mereu iconita predefinita (nu logo-ul clientului) -
+    // usor de recunoscut pe orice site, indiferent de brandul clientului. Logo-ul
+    // clientului apare doar in antetul panoului, langa numele afacerii.
     var launcher = document.createElement("button");
     launcher.className = "scb-launcher";
     launcher.setAttribute("aria-label", "Deschide chat");
-    if (LOGO_URL) {
-      var launcherImg = document.createElement("img");
-      launcherImg.src = LOGO_URL;
-      launcherImg.alt = "";
-      launcherImg.addEventListener("error", function () {
-        launcher.innerHTML = SVG_ICON;
-      });
-      launcher.appendChild(launcherImg);
-    } else {
-      launcher.innerHTML = SVG_ICON;
-    }
+    launcher.innerHTML = '<span class="scb-launcher-ring"></span>' + SVG_ICON;
     shadow.appendChild(launcher);
 
     var panel = document.createElement("div");
