@@ -8,6 +8,7 @@ const store = require("../lib/store");
 const { parseDocument } = require("../lib/docParser");
 const { crawlSite } = require("../lib/scraper");
 const requireAdmin = require("../lib/requireAdmin");
+const { requireSuperAdmin } = require("../lib/requireAdmin");
 const leads = require("../lib/leads");
 const usage = require("../lib/usage");
 
@@ -21,7 +22,7 @@ const upload = multer({
 });
 
 router.post("/login", requireAdmin, (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, superAdmin: req.isSuperAdmin });
 });
 
 router.get("/settings", requireAdmin, (req, res) => {
@@ -47,7 +48,7 @@ router.get("/leads", requireAdmin, (req, res) => {
   res.json({ leads: leads.listLeads() });
 });
 
-router.get("/usage", requireAdmin, (req, res) => {
+router.get("/usage", requireSuperAdmin, (req, res) => {
   res.json(usage.getStats());
 });
 

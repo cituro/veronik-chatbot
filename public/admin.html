@@ -134,7 +134,7 @@
       <div class="embed-box" id="embedCode"></div>
     </section>
 
-    <section>
+    <section id="usageSection" class="hidden">
       <h2>Consum API (estimat)</h2>
       <p style="font-size:13px;color:#555;">Cat de mult foloseste chatbot-ul acest instanta din API-ul Anthropic. Costul e o estimare pe baza tokenilor reali raportati de Anthropic si a preturilor curente pentru Claude Sonnet 4.5 ($3/milion tokeni input, $15/milion tokeni output) - verifica facturarea reala din contul Anthropic pentru cifre exacte.</p>
       <button class="secondary" id="refreshUsageBtn">Reincarca</button>
@@ -191,13 +191,16 @@
   document.getElementById("loginBtn").addEventListener("click", function () {
     adminPassword = document.getElementById("adminPassword").value;
     api("/api/admin/login", { method: "POST" })
-      .then(function () {
+      .then(function (data) {
         sessionStorage.setItem("scb_admin_pw", adminPassword);
         document.getElementById("loginScreen").classList.add("hidden");
         document.getElementById("appScreen").classList.remove("hidden");
         loadSettings();
         loadSources();
-        loadUsage();
+        if (data.superAdmin) {
+          document.getElementById("usageSection").classList.remove("hidden");
+          loadUsage();
+        }
         fetch("/api/health").then(function (r) { return r.json(); }).then(function (h) {
           if (h.leadsEnabled) {
             document.getElementById("leadsSection").classList.remove("hidden");
