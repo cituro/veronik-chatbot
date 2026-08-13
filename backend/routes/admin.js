@@ -9,6 +9,7 @@ const { parseDocument } = require("../lib/docParser");
 const { crawlSite } = require("../lib/scraper");
 const requireAdmin = require("../lib/requireAdmin");
 const leads = require("../lib/leads");
+const usage = require("../lib/usage");
 
 const router = express.Router();
 
@@ -44,6 +45,10 @@ router.delete("/sources/:id", requireAdmin, (req, res) => {
 
 router.get("/leads", requireAdmin, (req, res) => {
   res.json({ leads: leads.listLeads() });
+});
+
+router.get("/usage", requireAdmin, (req, res) => {
+  res.json(usage.getStats());
 });
 
 router.patch("/leads/:id", requireAdmin, (req, res) => {

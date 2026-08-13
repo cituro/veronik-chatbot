@@ -4,6 +4,7 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 backend/data/leads.json
 backend/data/knowledge.json
+backend/data/usage.json
 landing/
 
 *.zip

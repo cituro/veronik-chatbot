@@ -134,6 +134,24 @@
       <div class="embed-box" id="embedCode"></div>
     </section>
 
+    <section>
+      <h2>Consum API (estimat)</h2>
+      <p style="font-size:13px;color:#555;">Cat de mult foloseste chatbot-ul acest instanta din API-ul Anthropic. Costul e o estimare pe baza tokenilor reali raportati de Anthropic si a preturilor curente pentru Claude Sonnet 4.5 ($3/milion tokeni input, $15/milion tokeni output) - verifica facturarea reala din contul Anthropic pentru cifre exacte.</p>
+      <button class="secondary" id="refreshUsageBtn">Reincarca</button>
+      <div class="row" style="margin-top:14px;">
+        <div>
+          <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Ultimele 30 de zile</div>
+          <div style="font-size:22px;font-weight:700;margin-top:4px;" id="usageLast30Cost">-</div>
+          <div style="font-size:13px;color:#555;" id="usageLast30Detail">-</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Total (de la instalare)</div>
+          <div style="font-size:22px;font-weight:700;margin-top:4px;" id="usageTotalCost">-</div>
+          <div style="font-size:13px;color:#555;" id="usageTotalDetail">-</div>
+        </div>
+      </div>
+    </section>
+
     <section id="leadsSection" class="hidden">
       <h2>6. Cereri de trial / abonament</h2>
       <p style="font-size:13px;color:#555;">Cererile trimise din formularul de pe landing page (veronik.ro).</p>
@@ -179,6 +197,7 @@
         document.getElementById("appScreen").classList.remove("hidden");
         loadSettings();
         loadSources();
+        loadUsage();
         fetch("/api/health").then(function (r) { return r.json(); }).then(function (h) {
           if (h.leadsEnabled) {
             document.getElementById("leadsSection").classList.remove("hidden");
@@ -300,6 +319,22 @@
 
   var PLAN_LABELS = { trial: "Trial", start: "Start", business: "Business" };
   var STATUS_OPTIONS = ["nou", "contactat", "activat", "respins"];
+
+  function formatUsd(n) {
+    return "$" + n.toFixed(n < 1 ? 4 : 2);
+  }
+
+  function loadUsage() {
+    api("/api/admin/usage").then(function (s) {
+      document.getElementById("usageLast30Cost").textContent = formatUsd(s.last30Days.estimatedCostUsd);
+      document.getElementById("usageLast30Detail").textContent =
+        s.last30Days.messages + " mesaje - " + (s.last30Days.inputTokens + s.last30Days.outputTokens).toLocaleString("ro-RO") + " tokeni";
+      document.getElementById("usageTotalCost").textContent = formatUsd(s.total.estimatedCostUsd);
+      document.getElementById("usageTotalDetail").textContent =
+        s.total.messages + " mesaje - " + (s.total.inputTokens + s.total.outputTokens).toLocaleString("ro-RO") + " tokeni";
+    });
+  }
+  document.getElementById("refreshUsageBtn").addEventListener("click", loadUsage);
 
   function loadLeads() {
     api("/api/admin/leads").then(function (data) {

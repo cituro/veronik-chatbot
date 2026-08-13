@@ -4,6 +4,7 @@
 
 const Anthropic = require("@anthropic-ai/sdk");
 const store = require("./store");
+const usage = require("./usage");
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
@@ -77,6 +78,13 @@ async function reply(sessionId, userText) {
     .trim();
 
   saveTurn(sessionId, userText, assistantText);
+
+  if (response.usage) {
+    usage.recordUsage({
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+    });
+  }
 
   return assistantText;
 }
