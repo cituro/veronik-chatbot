@@ -19,6 +19,10 @@ app.use(
 
 app.use(express.json({ limit: "1mb" }));
 
+app.get("/", (req, res) => {
+  res.redirect("/admin.html");
+});
+
 app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.use("/api", chatRoutes);
