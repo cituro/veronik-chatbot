@@ -59,7 +59,7 @@ router.post("/leads", (req, res) => {
 
 router.post("/chat", async (req, res) => {
   try {
-    const { message, sessionId } = req.body || {};
+    const { message, sessionId, history } = req.body || {};
 
     if (!message || typeof message !== "string" || !message.trim()) {
       return res.status(400).json({ error: "Campul 'message' este obligatoriu." });
@@ -67,9 +67,12 @@ router.post("/chat", async (req, res) => {
     if (message.length > 4000) {
       return res.status(400).json({ error: "Mesajul este prea lung (max 4000 caractere)." });
     }
+    if (history !== undefined && (!Array.isArray(history) || history.length > 60)) {
+      return res.status(400).json({ error: "Istoric invalid." });
+    }
 
     const sid = sessionId && typeof sessionId === "string" ? sessionId : uuidv4();
-    const answer = await chat.reply(sid, message.trim());
+    const answer = await chat.reply(message.trim(), history);
 
     res.json({ sessionId: sid, reply: answer });
   } catch (err) {

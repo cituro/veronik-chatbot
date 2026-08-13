@@ -22,6 +22,8 @@
   var GREETING = cfg.greeting || attr("data-greeting", "Buna! Cu ce te pot ajuta astazi?");
   var LOGO_URL = cfg.logoUrl || attr("data-logo-url", "");
   var STORAGE_KEY = "site_chatbot_session_id";
+  var HISTORY_KEY = "site_chatbot_history";
+  var MAX_STORED_TURNS = 40; // 20 schimburi user+assistant
 
   function getSessionId() {
     try {
@@ -33,6 +35,26 @@
       return id;
     } catch (e) {
       return "sess-" + Math.random().toString(36).slice(2);
+    }
+  }
+
+  // Istoricul conversatiei se pastreaza in browser-ul vizitatorului, nu pe
+  // server - astfel conversatia ramane vizibila si dupa un refresh de pagina,
+  // si contextul supravietuieste chiar daca serverul reporneste intre timp.
+  function loadStoredHistory() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveStoredHistory(history) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-MAX_STORED_TURNS)));
+    } catch (e) {
+      // localStorage indisponibil (mod privat etc.) - conversatia ramane doar in pagina curenta
     }
   }
 
@@ -167,7 +189,14 @@
     var sendBtn = panel.querySelector(".scb-send");
     var closeBtn = panel.querySelector(".scb-close");
 
+    var conversation = loadStoredHistory(); // [{role:'user'|'assistant', content:text}]
     var greeted = false;
+    if (conversation.length) {
+      greeted = true;
+      conversation.forEach(function (turn) {
+        addMessage(turn.role === "user" ? "user" : "bot", turn.content);
+      });
+    }
 
     launcher.addEventListener("click", function () {
       panel.classList.toggle("open");
@@ -234,6 +263,7 @@
     function send() {
       var text = textarea.value.trim();
       if (!text || sending) return;
+      var historyToSend = conversation.slice(); // conversatia INAINTE de acest mesaj
       addMessage("user", text);
       textarea.value = "";
       autoGrow();
@@ -245,7 +275,7 @@
       fetch(API_URL.replace(/\/$/, "") + "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, sessionId: sessionId }),
+        body: JSON.stringify({ message: text, sessionId: sessionId, history: historyToSend }),
       })
         .then(function (r) {
           return r.json().then(function (data) {
@@ -255,7 +285,11 @@
         })
         .then(function (data) {
           typingEl.remove();
-          addMessage("bot", data.reply || "Ne pare rau, nu am putut genera un raspuns.");
+          var replyText = data.reply || "Ne pare rau, nu am putut genera un raspuns.";
+          addMessage("bot", replyText);
+          conversation.push({ role: "user", content: text });
+          conversation.push({ role: "assistant", content: replyText });
+          saveStoredHistory(conversation);
         })
         .catch(function (err) {
           typingEl.remove();

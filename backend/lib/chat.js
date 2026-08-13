@@ -1,6 +1,11 @@
 // Logica de conversatie: construieste promptul de sistem folosind setarile
-// afacerii + bucatile relevante din baza de cunostinte (RAG), pastreaza
-// istoricul conversatiei per sesiune de vizitator si apeleaza Claude.
+// afacerii + bucatile relevante din baza de cunostinte (RAG) si apeleaza Claude.
+//
+// Istoricul conversatiei NU mai e tinut in memoria serverului - vine de la
+// client (widget.js), care il pastreaza in localStorage. Asta face serverul
+// stateless (rezista la restart/redeploy fara sa piarda contextul unei
+// conversatii in desfasurare) si rezolva si problema vizuala (vizitatorul isi
+// vede mesajele anterioare si dupa un refresh de pagina).
 
 const Anthropic = require("@anthropic-ai/sdk");
 const store = require("./store");
@@ -9,29 +14,8 @@ const usage = require("./usage");
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
 
-const MAX_TURNS_KEPT = 12; // ultimele N mesaje (user+assistant) pastrate per sesiune
-const MAX_SESSIONS = 5000; // limita simpla ca sa nu creasca memoria la nesfarsit
+const MAX_TURNS_KEPT = 12; // ultimele N schimburi (user+assistant) trimise ca context
 const TOP_K_CHUNKS = 6;
-
-const sessions = new Map(); // sessionId -> [{role, content}]
-
-function getHistory(sessionId) {
-  return sessions.get(sessionId) || [];
-}
-
-function saveTurn(sessionId, userText, assistantText) {
-  if (!sessions.has(sessionId)) {
-    if (sessions.size >= MAX_SESSIONS) {
-      const oldestKey = sessions.keys().next().value;
-      sessions.delete(oldestKey);
-    }
-    sessions.set(sessionId, []);
-  }
-  const history = sessions.get(sessionId);
-  history.push({ role: "user", content: userText });
-  history.push({ role: "assistant", content: assistantText });
-  while (history.length > MAX_TURNS_KEPT * 2) history.shift();
-}
 
 function buildSystemPrompt(relevantChunks) {
   const settings = store.getSettings();
@@ -60,10 +44,21 @@ Context relevant din baza de cunostinte:
 ${context}`;
 }
 
-async function reply(sessionId, userText) {
+// Curata si limiteaza istoricul primit de la client, ca sa nu poata fi folosit
+// pentru a umfla artificial costul unei cereri (fiecare mesaj de istoric conteaza
+// ca tokeni de intrare la fiecare apel Anthropic).
+function sanitizeHistory(rawHistory) {
+  if (!Array.isArray(rawHistory)) return [];
+  const cleaned = rawHistory
+    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+    .map((m) => ({ role: m.role, content: m.content.slice(0, 4000) }));
+  return cleaned.slice(-MAX_TURNS_KEPT * 2);
+}
+
+async function reply(userText, rawHistory) {
   const relevantChunks = store.search(userText, TOP_K_CHUNKS);
   const system = buildSystemPrompt(relevantChunks);
-  const history = getHistory(sessionId);
+  const history = sanitizeHistory(rawHistory);
 
   const messages = [...history, { role: "user", content: userText }];
 
@@ -80,8 +75,6 @@ async function reply(sessionId, userText) {
     .join("\n")
     .trim();
 
-  saveTurn(sessionId, userText, assistantText);
-
   if (response.usage) {
     usage.recordUsage({
       inputTokens: response.usage.input_tokens,
@@ -92,4 +85,4 @@ async function reply(sessionId, userText) {
   return assistantText;
 }
 
-module.exports = { reply, getHistory };
+module.exports = { reply };
