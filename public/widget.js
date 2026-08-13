@@ -218,14 +218,17 @@
       return String(str).replace(/"/g, "&quot;");
     }
 
-    // Transforma linkuri in format markdown [text](url) in <a> reale.
-    // Se aplica DUPA escapeHtml, deci tot ce nu e recunoscut ca link ramane
-    // text simplu, in siguranta - si accepta doar URL-uri http/https (nu
+    // Transforma un subset minim de markdown (linkuri si bold) in HTML real.
+    // Se aplica DUPA escapeHtml, deci tot ce nu e recunoscut ramane text
+    // simplu, in siguranta - linkurile accepta doar URL-uri http/https (nu
     // javascript:, data: etc.), ca sa nu poata fi injectat cod prin raspunsul
     // generat de model sau prin continutul scanat de pe alte site-uri.
     function linkifyBotText(escapedText) {
-      return escapedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (match, label, url) {
+      var withLinks = escapedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (match, label, url) {
         return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + "</a>";
+      });
+      return withLinks.replace(/\*\*([^*]+)\*\*/g, function (match, text) {
+        return "<strong>" + text + "</strong>";
       });
     }
 
