@@ -134,7 +134,7 @@
       <div class="embed-box" id="embedCode"></div>
     </section>
 
-    <section>
+    <section id="leadsSection" class="hidden">
       <h2>6. Cereri de trial / abonament</h2>
       <p style="font-size:13px;color:#555;">Cererile trimise din formularul de pe landing page (veronik.ro).</p>
       <button class="secondary" id="refreshLeadsBtn">Reincarca lista</button>
@@ -179,7 +179,12 @@
         document.getElementById("appScreen").classList.remove("hidden");
         loadSettings();
         loadSources();
-        loadLeads();
+        fetch("/api/health").then(function (r) { return r.json(); }).then(function (h) {
+          if (h.leadsEnabled) {
+            document.getElementById("leadsSection").classList.remove("hidden");
+            loadLeads();
+          }
+        });
         buildEmbedCode();
       })
       .catch(function (err) { showMsg("loginMsg", err.message, false); });

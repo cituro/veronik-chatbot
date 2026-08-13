@@ -25,7 +25,11 @@ app.use("/api", chatRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", (req, res) => {
-  res.json({ ok: true, hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY) });
+  res.json({
+    ok: true,
+    hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY),
+    leadsEnabled: process.env.ENABLE_LEADS === "true",
+  });
 });
 
 app.listen(PORT, () => {
