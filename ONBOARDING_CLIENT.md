@@ -43,6 +43,7 @@ repornire — a pățit-o deja `chat.veronik.ro` cu o cerere pierdută.
 | `ADMIN_PASSWORD` | **parolă nouă, unică**, generată pentru acest client — nu o refolosi de la altul |
 | `ALLOWED_ORIGINS` | domeniul real al site-ului clientului, ex. `https://site-client.ro,https://www.site-client.ro` |
 | `DATA_DIR` | **exact aceeași cale ca la Mount Path**, ex. `/var/data` — fără asta, discul e atașat dar aplicația tot scrie în folderul temporar din cod, nu pe disc |
+| `SUPER_ADMIN_PASSWORD` | **aceeași parolă, pe toate instanțele** (a ta, master) — îți dă acces la secțiunea "Consum API", pe care parola clientului nu o vede |
 
 ## Pasul 4 — (opțional) domeniu propriu
 
