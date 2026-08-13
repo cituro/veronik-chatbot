@@ -119,7 +119,9 @@
       ".scb-inputbar textarea:focus{border-color:" + ACCENT + ";}" +
       ".scb-send{background:" + ACCENT + ";border:none;color:#fff;border-radius:10px;padding:0 14px;cursor:pointer;font-size:14px;}" +
       ".scb-send:disabled{opacity:.5;cursor:default;}" +
-      ".scb-footer{text-align:center;font-size:10px;color:#9ca3af;padding:4px 0 8px;}";
+      ".scb-footer{text-align:center;font-size:10px;color:#9ca3af;padding:4px 0 8px;}" +
+      ".scb-footer a{color:#9ca3af;text-decoration:none;font-weight:600;}" +
+      ".scb-footer a:hover{color:" + ACCENT + ";text-decoration:underline;}";
     shadow.appendChild(style);
 
     var SVG_ICON =
@@ -156,7 +158,7 @@
       '<textarea rows="1" placeholder="Scrie un mesaj..."></textarea>' +
       '<button class="scb-send">Trimite</button>' +
       "</div>" +
-      '<div class="scb-footer">Raspunsurile pot fi generate automat.</div>';
+      '<div class="scb-footer">Raspunsurile pot fi generate automat. &middot; <a href="https://veronik.ro" target="_blank" rel="noopener">Powered by Veronik</a></div>';
     shadow.appendChild(panel);
 
     var messagesEl = panel.querySelector(".scb-messages");
