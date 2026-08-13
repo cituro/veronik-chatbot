@@ -1,6 +1,6 @@
 {
   "name": "site-chatbot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Chatbot pentru conversatii cu vizitatorii unui site despre serviciile/produsele oferite, cu memorie din documentatie si din continutul scanat al site-ului.",
   "main": "backend/server.js",
   "type": "commonjs",
