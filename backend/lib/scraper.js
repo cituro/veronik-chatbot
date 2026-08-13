@@ -13,6 +13,12 @@ function normalizeUrl(url) {
   try {
     const u = new URL(url);
     u.hash = "";
+    // ignoram query string-urile la normalizare: majoritatea sunt actiuni
+    // (ex: WooCommerce "?add-to-cart=ID"), tracking (utm_*) sau sortare/filtrare,
+    // nu pagini noi cu continut propriu - fara asta, un magazin online poate
+    // genera sute de variante ale aceleiasi pagini, epuizand bugetul de scanare
+    // inainte sa ajunga la paginile reale de produs.
+    u.search = "";
     if (u.pathname.length > 1 && u.pathname.endsWith("/")) {
       u.pathname = u.pathname.slice(0, -1);
     }
@@ -73,10 +79,18 @@ function extractPage(html, pageUrl) {
  * Scaneaza un site pornind de la startUrl, ramanand pe acelasi domeniu.
  * onPage(pageInfo) este apelat pentru fiecare pagina reusita.
  */
+// "www.site.ro" si "site.ro" sunt, in practica, acelasi site - unele pagini
+// leaga relativ (mostenind www din pagina curenta), altele absolut catre
+// forma canonica fara www (sau invers). Fara asta, jumatate din linkurile
+// reale ar fi respinse ca fiind "alt domeniu".
+function bareHost(hostname) {
+  return hostname.replace(/^www\./i, "");
+}
+
 async function crawlSite(startUrl, { maxPages = DEFAULT_MAX_PAGES, maxDepth = DEFAULT_MAX_DEPTH, onPage } = {}) {
   const start = normalizeUrl(startUrl);
   if (!start) throw new Error("URL invalid");
-  const startHost = new URL(start).hostname;
+  const startHost = bareHost(new URL(start).hostname);
 
   const visited = new Set();
   const queue = [{ url: start, depth: 0 }];
@@ -90,7 +104,7 @@ async function crawlSite(startUrl, { maxPages = DEFAULT_MAX_PAGES, maxDepth = DE
 
     let host;
     try {
-      host = new URL(norm).hostname;
+      host = bareHost(new URL(norm).hostname);
     } catch {
       continue;
     }
