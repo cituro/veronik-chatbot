@@ -37,6 +37,10 @@
   .pos-toggle { display:flex; gap:8px; margin-top:4px; }
   .pos-toggle button { flex:1; margin-top:0; background:#fff; color:#374151; border:1px solid #d1d5db; }
   .pos-toggle button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .conv-card { border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-top:10px; }
+  .conv-card .conv-when { font-size:11px; color:#9ca3af; margin-bottom:6px; }
+  .conv-card .conv-line { font-size:13px; margin:4px 0; }
+  .conv-card .conv-line b { color:#374151; }
 </style>
 </head>
 <body>
@@ -133,6 +137,37 @@
       <div class="embed-box" id="embedCode"></div>
     </section>
 
+    <section id="usageSummarySection">
+      <h2>6. Statistici de utilizare</h2>
+      <p style="font-size:13px;color:#555;">Cate mesaje a primit chatbot-ul de la vizitatori.</p>
+      <div class="row" style="margin-top:14px;">
+        <div>
+          <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Ultimele 7 zile</div>
+          <div style="font-size:22px;font-weight:700;margin-top:4px;" id="statsLast7">-</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Ultimele 30 de zile</div>
+          <div style="font-size:22px;font-weight:700;margin-top:4px;" id="statsLast30">-</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#777;text-transform:uppercase;letter-spacing:.05em;">Total (de la instalare)</div>
+          <div style="font-size:22px;font-weight:700;margin-top:4px;" id="statsTotal">-</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="conversationsSection">
+      <h2>7. Istoric conversatii</h2>
+      <p style="font-size:13px;color:#555;">Schimburile de mesaje dintre vizitatori si chatbot, utile ca sa vezi ce intreaba lumea si unde botul nu a putut raspunde. Pastrate conform politicii de confidentialitate.</p>
+      <div class="row">
+        <button class="secondary" id="refreshConvBtn" style="margin-top:0;">Reincarca</button>
+        <button class="danger" id="clearConvBtn" style="margin-top:0;">Sterge tot istoricul</button>
+      </div>
+      <div id="conversationsList"></div>
+      <p id="conversationsEmpty" style="font-size:13px;color:#555;"></p>
+      <button class="secondary" id="loadMoreConvBtn" style="display:none;">Incarca mai multe</button>
+    </section>
+
     <section id="usageSection" class="hidden">
       <h2>Consum API (estimat)</h2>
       <p style="font-size:13px;color:#555;">Cat de mult foloseste chatbot-ul acest instanta din API-ul Anthropic. Costul e o estimare pe baza tokenilor reali raportati de Anthropic si a preturilor curente pentru Claude Sonnet 4.5 ($3/milion tokeni input, $15/milion tokeni output) - verifica facturarea reala din contul Anthropic pentru cifre exacte.</p>
@@ -152,7 +187,7 @@
     </section>
 
     <section id="leadsSection" class="hidden">
-      <h2>6. Cereri de trial / abonament</h2>
+      <h2>8. Cereri de trial / abonament</h2>
       <p style="font-size:13px;color:#555;">Cererile trimise din formularul de pe landing page (veronik.ro).</p>
       <button class="secondary" id="refreshLeadsBtn">Reincarca lista</button>
       <table id="leadsTable">
@@ -196,6 +231,8 @@
         document.getElementById("appScreen").classList.remove("hidden");
         loadSettings();
         loadSources();
+        loadUsageSummary();
+        loadConversations(true);
         if (data.superAdmin) {
           document.getElementById("usageSection").classList.remove("hidden");
           loadUsage();
@@ -336,6 +373,49 @@
     });
   }
   document.getElementById("refreshUsageBtn").addEventListener("click", loadUsage);
+
+  function loadUsageSummary() {
+    api("/api/admin/usage-summary").then(function (s) {
+      document.getElementById("statsLast7").textContent = s.messagesLast7Days + " mesaje";
+      document.getElementById("statsLast30").textContent = s.messagesLast30Days + " mesaje";
+      document.getElementById("statsTotal").textContent = s.messagesTotal + " mesaje";
+    });
+  }
+
+  var CONV_PAGE_SIZE = 20;
+  var convOffset = 0;
+  var convTotal = 0;
+
+  function renderConversation(c) {
+    var div = document.createElement("div");
+    div.className = "conv-card";
+    div.innerHTML =
+      "<div class='conv-when'>" + new Date(c.at).toLocaleString("ro-RO") + "</div>" +
+      "<div class='conv-line'><b>Vizitator:</b> " + escapeHtml(c.userText) + "</div>" +
+      "<div class='conv-line'><b>Bot:</b> " + escapeHtml(c.assistantText) + "</div>";
+    return div;
+  }
+
+  function loadConversations(reset) {
+    if (reset) convOffset = 0;
+    api("/api/admin/conversations?limit=" + CONV_PAGE_SIZE + "&offset=" + convOffset).then(function (data) {
+      convTotal = data.total;
+      var list = document.getElementById("conversationsList");
+      if (reset) list.innerHTML = "";
+      data.conversations.forEach(function (c) { list.appendChild(renderConversation(c)); });
+      convOffset += data.conversations.length;
+      document.getElementById("conversationsEmpty").textContent =
+        convTotal === 0 ? "Nicio conversatie inregistrata inca." : "Afisate " + convOffset + " din " + convTotal;
+      document.getElementById("loadMoreConvBtn").style.display = convOffset < convTotal ? "inline-block" : "none";
+    });
+  }
+
+  document.getElementById("refreshConvBtn").addEventListener("click", function () { loadConversations(true); });
+  document.getElementById("loadMoreConvBtn").addEventListener("click", function () { loadConversations(false); });
+  document.getElementById("clearConvBtn").addEventListener("click", function () {
+    if (!confirm("Sigur vrei sa stergi tot istoricul de conversatii? Aceasta actiune nu poate fi anulata.")) return;
+    api("/api/admin/conversations", { method: "DELETE" }).then(function () { loadConversations(true); });
+  });
 
   function loadLeads() {
     api("/api/admin/leads").then(function (data) {

@@ -11,6 +11,7 @@ const requireAdmin = require("../lib/requireAdmin");
 const { requireSuperAdmin } = require("../lib/requireAdmin");
 const leads = require("../lib/leads");
 const usage = require("../lib/usage");
+const conversations = require("../lib/conversations");
 
 const router = express.Router();
 
@@ -58,6 +59,21 @@ router.get("/leads", requireAdmin, (req, res) => {
 
 router.get("/usage", requireSuperAdmin, (req, res) => {
   res.json(usage.getStats());
+});
+
+// Statistici simple (fara cifre de cost) - vizibile clientului, nu doar Veronik.
+router.get("/usage-summary", requireAdmin, (req, res) => {
+  res.json(usage.getClientSummary());
+});
+
+router.get("/conversations", requireAdmin, (req, res) => {
+  const { limit, offset } = req.query || {};
+  res.json(conversations.listConversations({ limit, offset }));
+});
+
+router.delete("/conversations", requireAdmin, (req, res) => {
+  conversations.clearAll();
+  res.json({ ok: true });
 });
 
 router.patch("/leads/:id", requireAdmin, (req, res) => {

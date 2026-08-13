@@ -10,6 +10,7 @@
 const Anthropic = require("@anthropic-ai/sdk");
 const store = require("./store");
 const usage = require("./usage");
+const conversations = require("./conversations");
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-5";
@@ -55,7 +56,7 @@ function sanitizeHistory(rawHistory) {
   return cleaned.slice(-MAX_TURNS_KEPT * 2);
 }
 
-async function reply(userText, rawHistory) {
+async function reply(userText, rawHistory, sessionId) {
   const relevantChunks = store.search(userText, TOP_K_CHUNKS);
   const system = buildSystemPrompt(relevantChunks);
   const history = sanitizeHistory(rawHistory);
@@ -81,6 +82,8 @@ async function reply(userText, rawHistory) {
       outputTokens: response.usage.output_tokens,
     });
   }
+
+  conversations.logExchange({ sessionId, userText, assistantText });
 
   return assistantText;
 }

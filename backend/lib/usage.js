@@ -70,4 +70,25 @@ function getStats() {
   };
 }
 
-module.exports = { recordUsage, getStats };
+// Varianta fara cifre de cost/tokeni, pentru panoul clientului (nu doar
+// Veronik) - doar cate mesaje a primit botul, ca sa vada nivelul de activitate.
+function getClientSummary() {
+  const data = load();
+  const now = Date.now();
+  const day7 = now - 7 * 24 * 60 * 60 * 1000;
+  const day30 = now - 30 * 24 * 60 * 60 * 1000;
+
+  let last7 = 0;
+  let last30 = 0;
+  const total = data.events.length;
+
+  for (const ev of data.events) {
+    const t = new Date(ev.at).getTime();
+    if (t >= day7) last7 += 1;
+    if (t >= day30) last30 += 1;
+  }
+
+  return { messagesLast7Days: last7, messagesLast30Days: last30, messagesTotal: total };
+}
+
+module.exports = { recordUsage, getStats, getClientSummary };

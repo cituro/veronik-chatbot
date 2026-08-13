@@ -72,7 +72,7 @@ router.post("/chat", async (req, res) => {
     }
 
     const sid = sessionId && typeof sessionId === "string" ? sessionId : uuidv4();
-    const answer = await chat.reply(message.trim(), history);
+    const answer = await chat.reply(message.trim(), history, sid);
 
     res.json({ sessionId: sid, reply: answer });
   } catch (err) {
