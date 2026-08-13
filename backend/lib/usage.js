@@ -2,8 +2,8 @@
 // vedea cat costa efectiv fiecare client (nu doar o estimare).
 const fs = require("fs");
 const path = require("path");
+const DATA_DIR = require("./dataDir");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
 const USAGE_FILE = path.join(DATA_DIR, "usage.json");
 
 // Pret Claude Sonnet 4.5, per milion de tokeni (verifica/actualizeaza daca

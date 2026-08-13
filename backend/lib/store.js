@@ -6,8 +6,8 @@
 const fs = require("fs");
 const path = require("path");
 const { chunkText, tokenize } = require("./textUtils");
+const DATA_DIR = require("./dataDir");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
 const DATA_FILE = path.join(DATA_DIR, "knowledge.json");
 
 function loadRaw() {

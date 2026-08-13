@@ -25,7 +25,16 @@ Din Render Dashboard (sau prin mine, dacă ești în sesiune cu Claude Code):
   poate pierde documentația/conversațiile clientului la un redeploy sau
   repornire. Pentru un client plătitor, Starter e minimul recomandat.
 
-## Pasul 2 — variabile de mediu
+## Pasul 2 — disc persistent (obligatoriu pentru un client real)
+
+Fără asta, documentația/setările clientului se pierd la fiecare redeploy sau
+repornire — a pățit-o deja `chat.veronik.ro` cu o cerere pierdută.
+
+- Serviciul → **Settings → Disk** → **Add Disk**
+- **Mount Path**: `/var/data` (orice cale absolută merge, dar fii consecvent)
+- **Size**: 1 GB e suficient din plin pentru text (baza de cunoștințe e doar JSON)
+
+## Pasul 3 — variabile de mediu
 
 | Variabilă | Valoare |
 |---|---|
@@ -33,8 +42,9 @@ Din Render Dashboard (sau prin mine, dacă ești în sesiune cu Claude Code):
 | `ANTHROPIC_MODEL` | `claude-sonnet-4-5` |
 | `ADMIN_PASSWORD` | **parolă nouă, unică**, generată pentru acest client — nu o refolosi de la altul |
 | `ALLOWED_ORIGINS` | domeniul real al site-ului clientului, ex. `https://site-client.ro,https://www.site-client.ro` |
+| `DATA_DIR` | **exact aceeași cale ca la Mount Path**, ex. `/var/data` — fără asta, discul e atașat dar aplicația tot scrie în folderul temporar din cod, nu pe disc |
 
-## Pasul 3 — (opțional) domeniu propriu
+## Pasul 4 — (opțional) domeniu propriu
 
 Dacă vrei ca link-ul să arate a brand Veronik (nu `xxx.onrender.com`):
 - Render → serviciul → Settings → Custom Domains → adaugi un subdomeniu, ex.
@@ -42,7 +52,7 @@ Dacă vrei ca link-ul să arate a brand Veronik (nu `xxx.onrender.com`):
 - La DNS-ul `veronik.ro`, adaugi CNAME: `client1` → `<nume-serviciu>.onrender.com`
 - Așteaptă verificarea + certificatul SSL (câteva minute, uneori până la ~30-60 min)
 
-## Pasul 4 — predai accesul clientului
+## Pasul 5 — predai accesul clientului
 
 Îi trimiți clientului:
 1. Link-ul panoului de admin: `https://<instanta-lui>/admin.html`

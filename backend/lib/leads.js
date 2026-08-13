@@ -1,8 +1,8 @@
 // Stocare simpla pentru cererile de trial/abonament trimise din landing page.
 const fs = require("fs");
 const path = require("path");
+const DATA_DIR = require("./dataDir");
 
-const DATA_DIR = path.join(__dirname, "..", "data");
 const LEADS_FILE = path.join(DATA_DIR, "leads.json");
 
 function loadAll() {
