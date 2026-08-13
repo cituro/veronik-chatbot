@@ -113,6 +113,7 @@
       ".scb-msg.bot{background:#fff;color:#111;border:1px solid #e5e7eb;align-self:flex-start;border-bottom-left-radius:4px;}" +
       ".scb-msg.user{background:" + ACCENT + ";color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}" +
       ".scb-msg.typing{color:#888;font-style:italic;}" +
+      ".scb-msg.bot a{color:" + ACCENT + ";text-decoration:underline;font-weight:600;}" +
       ".scb-inputbar{display:flex;border-top:1px solid #e5e7eb;padding:10px;gap:8px;background:#fff;}" +
       ".scb-inputbar textarea{flex:1;resize:none;border:1px solid #d1d5db;border-radius:10px;padding:9px 10px;" +
       "font-size:14px;font-family:inherit;max-height:80px;outline:none;}" +
@@ -192,10 +193,25 @@
       return String(str).replace(/"/g, "&quot;");
     }
 
+    // Transforma linkuri in format markdown [text](url) in <a> reale.
+    // Se aplica DUPA escapeHtml, deci tot ce nu e recunoscut ca link ramane
+    // text simplu, in siguranta - si accepta doar URL-uri http/https (nu
+    // javascript:, data: etc.), ca sa nu poata fi injectat cod prin raspunsul
+    // generat de model sau prin continutul scanat de pe alte site-uri.
+    function linkifyBotText(escapedText) {
+      return escapedText.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (match, label, url) {
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + "</a>";
+      });
+    }
+
     function addMessage(role, text) {
       var el = document.createElement("div");
       el.className = "scb-msg " + role;
-      el.textContent = text;
+      if (role.indexOf("bot") === 0) {
+        el.innerHTML = linkifyBotText(escapeHtml(text));
+      } else {
+        el.textContent = text;
+      }
       messagesEl.appendChild(el);
       messagesEl.scrollTop = messagesEl.scrollHeight;
       return el;

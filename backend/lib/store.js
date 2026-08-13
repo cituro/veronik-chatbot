@@ -143,7 +143,17 @@ class KnowledgeStore {
       .filter((s) => s.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, topK)
-      .map((s) => ({ text: s.chunk.text, sourceId: s.chunk.sourceId, score: s.score }));
+      .map((s) => {
+        const source = this.data.sources.find((src) => src.id === s.chunk.sourceId);
+        return {
+          text: s.chunk.text,
+          sourceId: s.chunk.sourceId,
+          score: s.score,
+          // url e disponibil doar pentru pagini scanate de pe site (nu si pentru
+          // documente incarcate, unde "origin" e doar numele fisierului)
+          url: source && source.type === "webpage" ? source.origin : null,
+        };
+      });
   }
 }
 

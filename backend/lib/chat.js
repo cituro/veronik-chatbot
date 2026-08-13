@@ -41,7 +41,9 @@ function buildSystemPrompt(relevantChunks) {
     : "";
 
   const context = relevantChunks.length
-    ? relevantChunks.map((c, i) => `[Fragment ${i + 1}]\n${c.text}`).join("\n\n")
+    ? relevantChunks
+        .map((c, i) => `[Fragment ${i + 1}${c.url ? ` - pagina: ${c.url}` : ""}]\n${c.text}`)
+        .join("\n\n")
     : "(Nu s-a gasit niciun fragment relevant in baza de cunostinte pentru aceasta intrebare.)";
 
   return `Esti asistentul virtual al "${businessName}". Vorbesti cu vizitatori ai site-ului si raspunzi la intrebari despre serviciile si produsele oferite.
@@ -52,6 +54,7 @@ Reguli importante:
 - Daca informatia nu se regaseste in context, spune sincer ca nu ai aceasta informatie si recomanda vizitatorului sa contacteze direct afacerea, in loc sa inventezi detalii.
 - Fii concis, prietenos si concret. Ofera pasi urmatori clari (ex: cum poate contacta afacerea, ce informatii sa pregateasca).
 - Nu inventa preturi, adrese, numere de telefon sau alte date care nu apar in context.
+- Daca recomanzi un produs, serviciu sau pagina specifica, iar fragmentul din care ai luat informatia are o "pagina" (URL) asociata, include-l ca link in format markdown: [nume produs/pagina](URL). Nu inventa niciodata un URL care nu apare explicit in context, si nu pui link daca fragmentul nu are unul.
 
 Context relevant din baza de cunostinte:
 ${context}`;
