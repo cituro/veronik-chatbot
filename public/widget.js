@@ -204,7 +204,11 @@
       ".scb-contact-row a{color:#fff;text-decoration:none;font-weight:600;}" +
       ".scb-contact-row a:hover{text-decoration:underline;}" +
       ".scb-close-wide{background:" + ACCENT + ";color:#fff;border:none;border-radius:10px;padding:11px;" +
-      "font-size:13px;font-weight:700;cursor:pointer;margin-top:auto;}";
+      "font-size:13px;font-weight:700;cursor:pointer;margin-top:auto;}" +
+      // Pe telefon, panoul deschis ocupa tot ecranul (nu mai ramane bula
+      // vizibila dedesubt) - experienta obisnuita pentru chat pe mobil.
+      "@media (max-width:480px){.scb-panel{left:0;right:0;top:0;bottom:0;width:100%;height:100%;" +
+      "max-width:100%;max-height:100%;border-radius:0;}}";
     shadow.appendChild(style);
 
     var SVG_ICON =
@@ -311,25 +315,35 @@
       contactOverlay.classList.remove("open");
     }
 
+    // Bula flotanta ramane ascunsa cat timp panoul e deschis - pe mobil
+    // panoul ocupa tot ecranul, deci bula n-ar mai avea ce sa faca acolo,
+    // iar pe desktop e mai curat sa nu ramana vizibila sub fereastra de chat.
+    function closePanel() {
+      panel.classList.remove("open");
+      launcher.style.display = "";
+    }
+
     launcher.addEventListener("click", function () {
+      var opening = !panel.classList.contains("open");
       panel.classList.toggle("open");
-      if (panel.classList.contains("open")) {
+      if (opening) {
+        launcher.style.display = "none";
         if (hasConsent()) {
           openChat();
         } else {
           closeOverlays();
           consentOverlay.classList.add("open");
         }
+      } else {
+        launcher.style.display = "";
       }
     });
-    closeBtn.addEventListener("click", function () {
-      panel.classList.remove("open");
-    });
+    closeBtn.addEventListener("click", closePanel);
 
     panel.querySelectorAll(".scb-overlay-close").forEach(function (btn) {
       btn.addEventListener("click", function () {
         closeOverlays();
-        panel.classList.remove("open");
+        closePanel();
       });
     });
     panel.querySelector(".scb-accept").addEventListener("click", function () {
@@ -343,7 +357,7 @@
     });
     panel.querySelector(".scb-close-wide").addEventListener("click", function () {
       closeOverlays();
-      panel.classList.remove("open");
+      closePanel();
     });
 
     function escapeHtml(str) {
