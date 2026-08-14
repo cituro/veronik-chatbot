@@ -41,6 +41,11 @@
   .conv-card .conv-when { font-size:11px; color:#9ca3af; margin-bottom:6px; }
   .conv-card .conv-line { font-size:13px; margin:4px 0; }
   .conv-card .conv-line b { color:#374151; }
+  .ai-box { border:1px dashed #c7d2fe; background:#f5f7ff; border-radius:8px; padding:12px; margin-top:8px; }
+  .ai-box textarea { min-height:70px; }
+  .ai-box .row { margin-top:8px; }
+  .ai-box button { margin-top:0; }
+  .link-btn { background:none; border:none; color:var(--accent); font-size:13px; font-weight:600; padding:0; margin:6px 0 0; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -64,6 +69,16 @@
       <input type="text" id="businessName" placeholder="ex: Imob Prime Real Estate" />
       <label>Descriere afacere (servicii, produse, ce trebuie sa stie botul)</label>
       <textarea id="businessDescription" placeholder="ex: Agentie imobiliara specializata in vanzari si inchirieri de apartamente in Bucuresti..."></textarea>
+      <button type="button" class="link-btn" id="toggleAiBoxBtn">Genereaza cu AI &rarr;</button>
+      <div class="ai-box hidden" id="aiBox">
+        <label style="margin-top:0;">Notite rapide despre afacere (ce vindeti, program, livrare, garantie etc.)</label>
+        <textarea id="aiNotes" placeholder="ex: vindem mobilier de gradina si accesorii, livrare in toata tara in 3-5 zile, program L-V 9-18, retur in 14 zile..."></textarea>
+        <div class="row">
+          <button type="button" id="generateDescBtn">Genereaza descriere</button>
+          <button type="button" class="secondary" id="cancelAiBoxBtn">Anuleaza</button>
+        </div>
+        <div id="aiBoxMsg"></div>
+      </div>
       <div class="row">
         <div>
           <label>Mesaj de intampinare</label>
@@ -285,6 +300,27 @@
     api("/api/admin/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function () { showMsg("settingsMsg", "Setari salvate.", true); buildEmbedCode(); })
       .catch(function (err) { showMsg("settingsMsg", err.message, false); });
+  });
+
+  document.getElementById("toggleAiBoxBtn").addEventListener("click", function () {
+    document.getElementById("aiBox").classList.toggle("hidden");
+  });
+  document.getElementById("cancelAiBoxBtn").addEventListener("click", function () {
+    document.getElementById("aiBox").classList.add("hidden");
+  });
+  document.getElementById("generateDescBtn").addEventListener("click", function () {
+    var notes = document.getElementById("aiNotes").value.trim();
+    if (!notes) { showMsg("aiBoxMsg", "Scrie cateva notite despre afacere.", false); return; }
+    var body = { notes: notes, businessName: document.getElementById("businessName").value };
+    document.getElementById("generateDescBtn").disabled = true;
+    api("/api/admin/generate-description", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (data) {
+        document.getElementById("businessDescription").value = data.description;
+        document.getElementById("aiBox").classList.add("hidden");
+        showMsg("settingsMsg", "Descriere generata. Verific-o si apasa \"Salveaza setarile\".", true);
+      })
+      .catch(function (err) { showMsg("aiBoxMsg", err.message, false); })
+      .finally(function () { document.getElementById("generateDescBtn").disabled = false; });
   });
 
   document.getElementById("uploadBtn").addEventListener("click", function () {

@@ -12,6 +12,7 @@ const { requireSuperAdmin } = require("../lib/requireAdmin");
 const leads = require("../lib/leads");
 const usage = require("../lib/usage");
 const conversations = require("../lib/conversations");
+const aiAssist = require("../lib/aiAssist");
 
 const router = express.Router();
 
@@ -42,6 +43,23 @@ router.post("/settings", requireAdmin, (req, res) => {
     position: position === "left" ? "left" : "right",
   });
   res.json(updated);
+});
+
+router.post("/generate-description", requireAdmin, async (req, res) => {
+  const { notes, businessName } = req.body || {};
+  if (!notes || typeof notes !== "string" || !notes.trim()) {
+    return res.status(400).json({ error: "Scrie cateva notite despre afacere." });
+  }
+  if (notes.length > 3000) {
+    return res.status(400).json({ error: "Notitele sunt prea lungi (max 3000 caractere)." });
+  }
+  try {
+    const description = await aiAssist.generateBusinessDescription({ businessName, notes: notes.trim() });
+    res.json({ description });
+  } catch (err) {
+    console.error("Eroare generare descriere:", err);
+    res.status(500).json({ error: "Nu am putut genera descrierea. Incearca din nou." });
+  }
 });
 
 router.get("/sources", requireAdmin, (req, res) => {
