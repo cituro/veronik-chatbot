@@ -56,6 +56,35 @@ function sanitizeHistory(rawHistory) {
   return cleaned.slice(-MAX_TURNS_KEPT * 2);
 }
 
+// Eticheta butonului din cardul de recomandare, ghicita din structura URL-ului
+// paginii (nu avem o clasificare explicita produs/serviciu per sursa).
+function guessCtaLabel(url) {
+  const lower = url.toLowerCase();
+  if (/\/(produs|produse|product|products|shop|magazin)(\/|$|\?)/.test(lower)) return "Vezi produsul";
+  if (/\/(serviciu|servicii|service|services)(\/|$|\?)/.test(lower)) return "Vezi serviciul";
+  return "Vezi detalii";
+}
+
+// Extrage linkurile [text](url) din raspunsul lui Claude si, pentru cele care
+// corespund unei pagini scanate cu imagine reprezentativa cunoscuta, construieste
+// datele necesare pentru cardul de produs/serviciu afisat in widget sub mesaj.
+function extractLinkCards(assistantText) {
+  const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+  const seen = new Set();
+  const links = [];
+  let match;
+  while ((match = linkRegex.exec(assistantText))) {
+    const [, label, url] = match;
+    if (seen.has(url)) continue;
+    seen.add(url);
+    const source = store.getSourceByUrl(url);
+    if (source && source.image) {
+      links.push({ url, label, title: source.label || label, image: source.image, ctaLabel: guessCtaLabel(url) });
+    }
+  }
+  return links;
+}
+
 async function reply(userText, rawHistory, sessionId) {
   const relevantChunks = store.search(userText, TOP_K_CHUNKS);
   const system = buildSystemPrompt(relevantChunks);
@@ -85,7 +114,7 @@ async function reply(userText, rawHistory, sessionId) {
 
   conversations.logExchange({ sessionId, userText, assistantText });
 
-  return assistantText;
+  return { text: assistantText, links: extractLinkCards(assistantText) };
 }
 
 module.exports = { reply };

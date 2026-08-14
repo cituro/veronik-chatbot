@@ -47,6 +47,13 @@ class KnowledgeStore {
       // pozitia bulei de chat pe ecran - singura personalizare vizuala lasata
       // la alegerea clientului (culoarea e fixa, brand Veronik, pe toate instantele)
       position: this.data.settings.position === "left" ? "left" : "right",
+      // date de contact afisate vizitatorului daca refuza consimtamantul AI,
+      // ca sa aiba o alternativa la chat - toate optionale
+      privacyPolicyUrl: this.data.settings.privacyPolicyUrl || "",
+      contactPhone: this.data.settings.contactPhone || "",
+      contactEmail: this.data.settings.contactEmail || "",
+      contactAddress: this.data.settings.contactAddress || "",
+      contactUrl: this.data.settings.contactUrl || "",
     };
   }
 
@@ -75,7 +82,7 @@ class KnowledgeStore {
     this.persist();
   }
 
-  addSource({ id, type, label, origin }) {
+  addSource({ id, type, label, origin, image }) {
     // inlocuieste o sursa existenta cu acelasi id (re-scanare/re-upload)
     this.data.sources = this.data.sources.filter((s) => s.id !== id);
     this.data.chunks = this.data.chunks.filter((c) => c.sourceId !== id);
@@ -84,8 +91,16 @@ class KnowledgeStore {
       type, // "document" | "webpage"
       label,
       origin, // nume fisier sau URL
+      image: image || "", // imagine reprezentativa (doar pentru pagini web scanate)
       addedAt: new Date().toISOString(),
     });
+  }
+
+  // Cauta sursa unei pagini scanate dupa URL-ul ei exact - folosit ca sa
+  // construim cardul de produs/serviciu (titlu + imagine) pentru un link pe
+  // care Claude l-a inclus in raspuns.
+  getSourceByUrl(url) {
+    return this.data.sources.find((s) => s.type === "webpage" && s.origin === url) || null;
   }
 
   addTextForSource(sourceId, text) {

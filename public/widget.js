@@ -26,8 +26,15 @@
   var GREETING = cfg.greeting || attr("data-greeting", "Buna! Cu ce te pot ajuta astazi?");
   var LOGO_URL = cfg.logoUrl || attr("data-logo-url", "");
   var POSITION = cfg.position || attr("data-position", "right"); // "right" sau "left"
+  var PRIVACY_URL = cfg.privacyPolicyUrl || attr("data-privacy-url", "");
+  var CONTACT_PHONE = cfg.contactPhone || "";
+  var CONTACT_EMAIL = cfg.contactEmail || "";
+  var CONTACT_ADDRESS = cfg.contactAddress || "";
+  var CONTACT_URL = cfg.contactUrl || "";
+  var LANGUAGE = cfg.language || attr("data-language", "romana");
   var STORAGE_KEY = "site_chatbot_session_id";
   var HISTORY_KEY = "site_chatbot_history";
+  var CONSENT_KEY = "site_chatbot_ai_consent";
   var MAX_STORED_TURNS = 40; // 20 schimburi user+assistant
 
   function getSessionId() {
@@ -95,6 +102,12 @@
           if (remote.greeting) GREETING = remote.greeting;
           if (remote.logoUrl) LOGO_URL = remote.logoUrl;
           if (remote.position === "left" || remote.position === "right") POSITION = remote.position;
+          if (remote.language) LANGUAGE = remote.language;
+          if (remote.privacyPolicyUrl) PRIVACY_URL = remote.privacyPolicyUrl;
+          if (remote.contactPhone) CONTACT_PHONE = remote.contactPhone;
+          if (remote.contactEmail) CONTACT_EMAIL = remote.contactEmail;
+          if (remote.contactAddress) CONTACT_ADDRESS = remote.contactAddress;
+          if (remote.contactUrl) CONTACT_URL = remote.contactUrl;
         }
         mount();
       })
@@ -150,11 +163,48 @@
       ".scb-inputbar textarea{flex:1;resize:none;border:1px solid #d1d5db;border-radius:10px;padding:9px 10px;" +
       "font-size:14px;font-family:inherit;max-height:80px;outline:none;}" +
       ".scb-inputbar textarea:focus{border-color:" + ACCENT + ";}" +
+      ".scb-mic{background:transparent;border:1px solid #d1d5db;color:#6b7280;border-radius:10px;width:38px;" +
+      "min-width:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;}" +
+      ".scb-mic.recording{background:#ef4444;border-color:#ef4444;color:#fff;animation:scbMicPulse 1.1s ease-in-out infinite;}" +
+      "@keyframes scbMicPulse{0%,100%{opacity:1;}50%{opacity:.55;}}" +
       ".scb-send{background:" + ACCENT + ";border:none;color:#fff;border-radius:10px;padding:0 14px;cursor:pointer;font-size:14px;}" +
       ".scb-send:disabled{opacity:.5;cursor:default;}" +
       ".scb-footer{text-align:center;font-size:10px;color:#9ca3af;padding:4px 0 8px;}" +
       ".scb-footer a{color:#9ca3af;text-decoration:none;font-weight:600;}" +
-      ".scb-footer a:hover{color:" + ACCENT + ";text-decoration:underline;}";
+      ".scb-footer a:hover{color:" + ACCENT + ";text-decoration:underline;}" +
+      ".scb-cards{display:flex;flex-direction:column;gap:8px;align-self:flex-start;max-width:82%;margin-top:-2px;}" +
+      ".scb-card{display:flex;gap:10px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:8px;align-items:center;}" +
+      ".scb-card-img{width:52px;height:52px;border-radius:8px;object-fit:cover;flex-shrink:0;background:#f3f4f6;}" +
+      ".scb-card-body{display:flex;flex-direction:column;gap:4px;min-width:0;}" +
+      ".scb-card-title{font-size:12.5px;font-weight:600;color:#111;line-height:1.3;overflow:hidden;" +
+      "text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}" +
+      ".scb-card-cta{font-size:12px;font-weight:700;color:" + ACCENT + ";text-decoration:none;}" +
+      ".scb-card-cta:hover{text-decoration:underline;}" +
+      ".scb-overlay{position:absolute;inset:0;background:rgba(17,24,39,.94);color:#fff;display:none;" +
+      "flex-direction:column;padding:26px 22px;overflow-y:auto;z-index:2;}" +
+      ".scb-overlay.open{display:flex;}" +
+      ".scb-overlay-close{position:absolute;top:12px;right:14px;background:transparent;border:none;color:#9ca3af;" +
+      "font-size:20px;cursor:pointer;line-height:1;padding:4px;}" +
+      ".scb-overlay-icon{width:52px;height:52px;border-radius:14px;background:" + ACCENT + ";display:flex;" +
+      "align-items:center;justify-content:center;margin:6px auto 16px;}" +
+      ".scb-overlay-icon svg{width:26px;height:26px;fill:#fff;}" +
+      ".scb-overlay h3{margin:0 0 14px;font-size:16px;text-align:center;}" +
+      ".scb-overlay p{margin:0 0 12px;font-size:12.5px;line-height:1.55;color:#d1d5db;text-align:center;}" +
+      ".scb-overlay a{color:#93c5fd;}" +
+      ".scb-overlay-actions{display:flex;gap:10px;margin-top:auto;padding-top:14px;}" +
+      ".scb-overlay-actions button{flex:1;border-radius:10px;padding:11px 8px;font-size:13px;font-weight:700;" +
+      "cursor:pointer;border:none;}" +
+      ".scb-decline{background:#374151;color:#e5e7eb;}" +
+      ".scb-accept{background:" + ACCENT + ";color:#fff;}" +
+      ".scb-contact-list{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;margin:6px 0 14px;}" +
+      ".scb-contact-row{display:flex;justify-content:space-between;gap:10px;padding:11px 14px;font-size:12.5px;" +
+      "border-bottom:1px solid rgba(255,255,255,.1);}" +
+      ".scb-contact-row:last-child{border-bottom:none;}" +
+      ".scb-contact-row span:first-child{color:#9ca3af;text-transform:uppercase;letter-spacing:.04em;font-size:10.5px;}" +
+      ".scb-contact-row a{color:#fff;text-decoration:none;font-weight:600;}" +
+      ".scb-contact-row a:hover{text-decoration:underline;}" +
+      ".scb-close-wide{background:" + ACCENT + ";color:#fff;border:none;border-radius:10px;padding:11px;" +
+      "font-size:13px;font-weight:700;cursor:pointer;margin-top:auto;}";
     shadow.appendChild(style);
 
     var SVG_ICON =
@@ -168,6 +218,15 @@
     launcher.setAttribute("aria-label", "Deschide chat");
     launcher.innerHTML = '<span class="scb-launcher-ring"></span>' + SVG_ICON;
     shadow.appendChild(launcher);
+
+    var MIC_ICON =
+      '<svg viewBox="0 0 24 24" width="17" height="17"><path fill="currentColor" d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>';
+
+    var contactRows = "";
+    if (CONTACT_PHONE) contactRows += '<div class="scb-contact-row"><span>Telefon</span><a href="tel:' + escapeAttr(CONTACT_PHONE.replace(/\s+/g, "")) + '">' + escapeHtml(CONTACT_PHONE) + "</a></div>";
+    if (CONTACT_EMAIL) contactRows += '<div class="scb-contact-row"><span>Email</span><a href="mailto:' + escapeAttr(CONTACT_EMAIL) + '">' + escapeHtml(CONTACT_EMAIL) + "</a></div>";
+    if (CONTACT_ADDRESS) contactRows += '<div class="scb-contact-row"><span>Adresa</span><span>' + escapeHtml(CONTACT_ADDRESS) + "</span></div>";
+    if (CONTACT_URL) contactRows += '<div class="scb-contact-row"><span>Contact</span><a href="' + escapeAttr(CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">Deschide</a></div>';
 
     var panel = document.createElement("div");
     panel.className = "scb-panel";
@@ -184,13 +243,35 @@
       '<textarea rows="1" placeholder="Scrie un mesaj..."></textarea>' +
       '<button class="scb-send">Trimite</button>' +
       "</div>" +
-      '<div class="scb-footer">Raspunsurile pot fi generate automat. &middot; <a href="https://veronik.ro" target="_blank" rel="noopener">Powered by Veronik</a></div>';
+      '<div class="scb-footer">Raspunsurile pot fi generate automat. &middot; <a href="https://veronik.ro" target="_blank" rel="noopener">Powered by Veronik</a></div>' +
+      '<div class="scb-overlay scb-consent-overlay">' +
+      '<button class="scb-overlay-close" aria-label="Inchide">&times;</button>' +
+      '<div class="scb-overlay-icon">' + SVG_ICON + "</div>" +
+      "<h3>Discuti cu o inteligenta artificiala</h3>" +
+      "<p>Raspunsurile sunt generate automat si pot contine inexactitati. Mesajele tale sunt procesate de servicii AI partenere, pentru a genera raspunsuri relevante.</p>" +
+      "<p>Te rugam sa nu introduci date sensibile (CNP, parole, informatii bancare) decat daca este necesar.</p>" +
+      "<p>Conversatiile sunt pastrate conform politicii de confidentialitate" + (PRIVACY_URL ? ", disponibila <a href=\"" + escapeAttr(PRIVACY_URL) + "\" target=\"_blank\" rel=\"noopener noreferrer\">aici</a>" : "") + ". Tehnologie oferita de <a href=\"https://veronik.ro\" target=\"_blank\" rel=\"noopener noreferrer\">Veronik</a>.</p>" +
+      '<div class="scb-overlay-actions">' +
+      '<button class="scb-decline">Nu sunt de acord</button>' +
+      '<button class="scb-accept">Sunt de acord, continua</button>' +
+      "</div>" +
+      "</div>" +
+      '<div class="scb-overlay scb-contact-overlay">' +
+      '<button class="scb-overlay-close" aria-label="Inchide">&times;</button>' +
+      '<div class="scb-overlay-icon">' + SVG_ICON + "</div>" +
+      "<h3>Cum te putem ajuta altfel</h3>" +
+      "<p>Intelegem. Pentru orice intrebare, ne poti contacta direct:</p>" +
+      (contactRows ? '<div class="scb-contact-list">' + contactRows + "</div>" : "") +
+      '<button class="scb-close-wide">Inchide</button>' +
+      "</div>";
     shadow.appendChild(panel);
 
     var messagesEl = panel.querySelector(".scb-messages");
     var textarea = panel.querySelector("textarea");
     var sendBtn = panel.querySelector(".scb-send");
     var closeBtn = panel.querySelector(".scb-close");
+    var consentOverlay = panel.querySelector(".scb-consent-overlay");
+    var contactOverlay = panel.querySelector(".scb-contact-overlay");
 
     var conversation = loadStoredHistory(); // [{role:'user'|'assistant', content:text}]
     var greeted = false;
@@ -199,19 +280,69 @@
       conversation.forEach(function (turn) {
         addMessage(turn.role === "user" ? "user" : "bot", turn.content);
       });
+      // vizitatori care au discutat deja inainte sa existe acest ecran nu
+      // trebuie blocati retroactiv cu un consimtamant pe care nu l-au vazut
+      if (!hasConsent()) setConsent();
+    }
+
+    function hasConsent() {
+      try {
+        return localStorage.getItem(CONSENT_KEY) === "accepted";
+      } catch (e) {
+        return true; // localStorage indisponibil - nu blocam conversatia
+      }
+    }
+    function setConsent() {
+      try {
+        localStorage.setItem(CONSENT_KEY, "accepted");
+      } catch (e) {}
+    }
+
+    function openChat() {
+      textarea.focus();
+      if (!greeted) {
+        greeted = true;
+        addMessage("bot", GREETING);
+      }
+    }
+
+    function closeOverlays() {
+      consentOverlay.classList.remove("open");
+      contactOverlay.classList.remove("open");
     }
 
     launcher.addEventListener("click", function () {
       panel.classList.toggle("open");
       if (panel.classList.contains("open")) {
-        textarea.focus();
-        if (!greeted) {
-          greeted = true;
-          addMessage("bot", GREETING);
+        if (hasConsent()) {
+          openChat();
+        } else {
+          closeOverlays();
+          consentOverlay.classList.add("open");
         }
       }
     });
     closeBtn.addEventListener("click", function () {
+      panel.classList.remove("open");
+    });
+
+    panel.querySelectorAll(".scb-overlay-close").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        closeOverlays();
+        panel.classList.remove("open");
+      });
+    });
+    panel.querySelector(".scb-accept").addEventListener("click", function () {
+      setConsent();
+      closeOverlays();
+      openChat();
+    });
+    panel.querySelector(".scb-decline").addEventListener("click", function () {
+      consentOverlay.classList.remove("open");
+      contactOverlay.classList.add("open");
+    });
+    panel.querySelector(".scb-close-wide").addEventListener("click", function () {
+      closeOverlays();
       panel.classList.remove("open");
     });
 
@@ -250,6 +381,93 @@
       messagesEl.appendChild(el);
       messagesEl.scrollTop = messagesEl.scrollHeight;
       return el;
+    }
+
+    // Randeaza sub mesajul botului cardurile de produs/serviciu recomandate
+    // (imagine + titlu + buton), pentru linkurile care corespund unei pagini
+    // scanate cu imagine reprezentativa cunoscuta.
+    function addLinkCards(links) {
+      if (!links || !links.length) return;
+      var wrap = document.createElement("div");
+      wrap.className = "scb-cards";
+      links.forEach(function (link) {
+        if (!link || !/^https?:\/\//i.test(link.url || "")) return;
+        var safeImage = /^https?:\/\//i.test(link.image || "") ? link.image : "";
+        var card = document.createElement("div");
+        card.className = "scb-card";
+        card.innerHTML =
+          (safeImage
+            ? '<img class="scb-card-img" src="' + escapeAttr(safeImage) + "\" alt=\"\" onerror=\"this.style.display='none'\" />"
+            : '<div class="scb-card-img"></div>') +
+          '<div class="scb-card-body">' +
+          '<div class="scb-card-title">' + escapeHtml(link.title || link.label || "") + "</div>" +
+          '<a class="scb-card-cta" href="' + escapeAttr(link.url) + '" target="_blank" rel="noopener noreferrer">' +
+          escapeHtml(link.ctaLabel || "Vezi detalii") + " &rarr;</a>" +
+          "</div>";
+        wrap.appendChild(card);
+      });
+      if (wrap.children.length) {
+        messagesEl.appendChild(wrap);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+    }
+
+    // Buton microfon (optional) - doar in browserele care suporta Web Speech
+    // API (Chrome/Edge/Safari); pe restul (ex: Firefox desktop) ramane ascuns,
+    // nu afisam un buton decorativ care nu functioneaza.
+    var SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognitionCtor) {
+      var micBtn = document.createElement("button");
+      micBtn.type = "button";
+      micBtn.className = "scb-mic";
+      micBtn.title = "Tine apasat pentru a vorbi";
+      micBtn.setAttribute("aria-label", "Tine apasat pentru a vorbi");
+      micBtn.innerHTML = MIC_ICON;
+      sendBtn.parentNode.insertBefore(micBtn, sendBtn);
+
+      var SPEECH_LANG = /engl/i.test(LANGUAGE) ? "en-US" : "ro-RO";
+      var recognition = null;
+      var recognizing = false;
+
+      function startRecording() {
+        if (recognizing) return;
+        try {
+          recognition = new SpeechRecognitionCtor();
+          recognition.lang = SPEECH_LANG;
+          recognition.interimResults = true;
+          recognition.continuous = false;
+          recognition.onresult = function (e) {
+            var transcript = "";
+            for (var i = 0; i < e.results.length; i++) transcript += e.results[i][0].transcript;
+            textarea.value = transcript;
+            autoGrow();
+          };
+          recognition.onend = function () {
+            recognizing = false;
+            micBtn.classList.remove("recording");
+          };
+          recognition.onerror = function () {
+            recognizing = false;
+            micBtn.classList.remove("recording");
+          };
+          recognition.start();
+          recognizing = true;
+          micBtn.classList.add("recording");
+        } catch (e) {
+          recognizing = false;
+        }
+      }
+      function stopRecording() {
+        if (recognition && recognizing) recognition.stop();
+      }
+      micBtn.addEventListener("mousedown", startRecording);
+      micBtn.addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        startRecording();
+      });
+      micBtn.addEventListener("mouseup", stopRecording);
+      micBtn.addEventListener("mouseleave", stopRecording);
+      micBtn.addEventListener("touchend", stopRecording);
     }
 
     function autoGrow() {
@@ -293,6 +511,7 @@
           typingEl.remove();
           var replyText = data.reply || "Ne pare rau, nu am putut genera un raspuns.";
           addMessage("bot", replyText);
+          addLinkCards(data.links);
           conversation.push({ role: "user", content: text });
           conversation.push({ role: "assistant", content: replyText });
           saveStoredHistory(conversation);

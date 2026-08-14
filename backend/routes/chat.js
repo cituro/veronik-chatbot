@@ -20,6 +20,12 @@ router.get("/widget-config", (req, res) => {
     greeting: settings.greeting,
     logoUrl: settings.logoUrl,
     position: settings.position,
+    language: settings.language,
+    privacyPolicyUrl: settings.privacyPolicyUrl,
+    contactPhone: settings.contactPhone,
+    contactEmail: settings.contactEmail,
+    contactAddress: settings.contactAddress,
+    contactUrl: settings.contactUrl,
   });
 });
 
@@ -74,7 +80,7 @@ router.post("/chat", async (req, res) => {
     const sid = sessionId && typeof sessionId === "string" ? sessionId : uuidv4();
     const answer = await chat.reply(message.trim(), history, sid);
 
-    res.json({ sessionId: sid, reply: answer });
+    res.json({ sessionId: sid, reply: answer.text, links: answer.links });
   } catch (err) {
     console.error("Eroare /api/chat:", err);
     res.status(500).json({ error: "A aparut o eroare la generarea raspunsului. Incearca din nou." });

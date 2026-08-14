@@ -47,8 +47,25 @@ async function fetchHtml(url) {
   }
 }
 
+// Extrage o imagine reprezentativa a paginii (folosita ulterior in cardurile
+// de produs/serviciu recomandate de bot) - og:image e completat de aproape
+// orice site modern (inclusiv WooCommerce) cu poza principala a paginii.
+function extractImage($, pageUrl) {
+  const raw =
+    $('meta[property="og:image"]').attr("content") ||
+    $('meta[name="twitter:image"]').attr("content") ||
+    "";
+  if (!raw) return "";
+  try {
+    return new URL(raw, pageUrl).toString();
+  } catch {
+    return "";
+  }
+}
+
 function extractPage(html, pageUrl) {
   const $ = cheerio.load(html);
+  const image = extractImage($, pageUrl);
   $("script, style, noscript, nav, footer, header, svg, iframe, form").remove();
 
   const title = $("title").first().text().trim();
@@ -72,7 +89,7 @@ function extractPage(html, pageUrl) {
     }
   });
 
-  return { title, text, links: Array.from(links) };
+  return { title, text, image, links: Array.from(links) };
 }
 
 /**
@@ -113,9 +130,9 @@ async function crawlSite(startUrl, { maxPages = DEFAULT_MAX_PAGES, maxDepth = DE
     const html = await fetchHtml(norm);
     if (!html) continue;
 
-    const { title, text, links } = extractPage(html, norm);
+    const { title, text, image, links } = extractPage(html, norm);
     if (text && text.length > 50) {
-      const page = { url: norm, title, text };
+      const page = { url: norm, title, text, image };
       results.push(page);
       if (onPage) onPage(page);
     }

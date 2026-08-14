@@ -109,6 +109,29 @@
         <button type="button" id="posLeftBtn" data-position="left">Stanga</button>
       </div>
       <p style="font-size:12px;color:#777;margin:4px 0 0;">In ce colt jos apare bula de chat pe site. Culoarea e fixa (brand Veronik) pe toate site-urile.</p>
+
+      <label style="margin-top:20px;">URL politica de confidentialitate (a afacerii tale)</label>
+      <input type="text" id="privacyPolicyUrl" placeholder="https://site-ul-tau.ro/politica-de-confidentialitate" />
+      <p style="font-size:12px;color:#777;margin:4px 0 0;">Afisata vizitatorilor in ecranul de consimtamant, inainte sa discute cu botul.</p>
+
+      <label>Date de contact (afisate daca un vizitator refuza discutia cu AI-ul)</label>
+      <div class="row">
+        <div>
+          <input type="text" id="contactPhone" placeholder="Telefon: 07xx xxx xxx" />
+        </div>
+        <div>
+          <input type="text" id="contactEmail" placeholder="Email: contact@site-ul-tau.ro" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <input type="text" id="contactAddress" placeholder="Adresa (optional)" />
+        </div>
+        <div>
+          <input type="text" id="contactUrl" placeholder="Link pagina de contact (optional)" />
+        </div>
+      </div>
+
       <button id="saveSettingsBtn">Salveaza setarile</button>
       <div id="settingsMsg"></div>
     </section>
@@ -289,6 +312,11 @@
       document.getElementById("tone").value = s.tone || "";
       document.getElementById("language").value = s.language || "";
       document.getElementById("logoUrl").value = s.logoUrl || "";
+      document.getElementById("privacyPolicyUrl").value = s.privacyPolicyUrl || "";
+      document.getElementById("contactPhone").value = s.contactPhone || "";
+      document.getElementById("contactEmail").value = s.contactEmail || "";
+      document.getElementById("contactAddress").value = s.contactAddress || "";
+      document.getElementById("contactUrl").value = s.contactUrl || "";
       setPosition(s.position || "right");
       buildEmbedCode();
     });
@@ -303,6 +331,11 @@
       language: document.getElementById("language").value,
       logoUrl: document.getElementById("logoUrl").value,
       position: selectedPosition,
+      privacyPolicyUrl: document.getElementById("privacyPolicyUrl").value,
+      contactPhone: document.getElementById("contactPhone").value,
+      contactEmail: document.getElementById("contactEmail").value,
+      contactAddress: document.getElementById("contactAddress").value,
+      contactUrl: document.getElementById("contactUrl").value,
     };
     api("/api/admin/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function () { showMsg("settingsMsg", "Setari salvate.", true); buildEmbedCode(); })

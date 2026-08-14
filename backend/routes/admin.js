@@ -32,7 +32,10 @@ router.get("/settings", requireAdmin, (req, res) => {
 });
 
 router.post("/settings", requireAdmin, (req, res) => {
-  const { businessName, businessDescription, greeting, tone, language, logoUrl, position } = req.body || {};
+  const {
+    businessName, businessDescription, greeting, tone, language, logoUrl, position,
+    privacyPolicyUrl, contactPhone, contactEmail, contactAddress, contactUrl,
+  } = req.body || {};
   const updated = store.updateSettings({
     businessName,
     businessDescription,
@@ -41,6 +44,11 @@ router.post("/settings", requireAdmin, (req, res) => {
     language,
     logoUrl,
     position: position === "left" ? "left" : "right",
+    privacyPolicyUrl,
+    contactPhone,
+    contactEmail,
+    contactAddress,
+    contactUrl,
   });
   res.json(updated);
 });
@@ -151,7 +159,7 @@ router.post("/scan-site", requireAdmin, async (req, res) => {
       maxDepth: Math.min(Number(maxDepth) || 2, 3),
       onPage: (page) => {
         const sourceId = `web:${crypto.createHash("sha1").update(page.url).digest("hex")}`;
-        store.addSource({ id: sourceId, type: "webpage", label: page.title || page.url, origin: page.url });
+        store.addSource({ id: sourceId, type: "webpage", label: page.title || page.url, origin: page.url, image: page.image });
         store.addTextForSource(sourceId, `${page.title || ""}\n\n${page.text}`);
       },
     });
