@@ -120,6 +120,9 @@
           <input type="text" id="contactPhone" placeholder="Telefon: 07xx xxx xxx" />
         </div>
         <div>
+          <input type="text" id="contactWhatsapp" placeholder="WhatsApp: 40744xxxxxx (cu prefix tara, fara 0)" />
+        </div>
+        <div>
           <input type="text" id="contactEmail" placeholder="Email: contact@site-ul-tau.ro" />
         </div>
       </div>
@@ -131,6 +134,7 @@
           <input type="text" id="contactUrl" placeholder="Link pagina de contact (optional)" />
         </div>
       </div>
+      <p style="font-size:12px;color:#777;margin:4px 0 0;">Completeaza cel putin unul dintre campurile de mai sus, altfel ecranul de contact va aparea gol pentru vizitator.</p>
 
       <button id="saveSettingsBtn">Salveaza setarile</button>
       <div id="settingsMsg"></div>
@@ -314,6 +318,7 @@
       document.getElementById("logoUrl").value = s.logoUrl || "";
       document.getElementById("privacyPolicyUrl").value = s.privacyPolicyUrl || "";
       document.getElementById("contactPhone").value = s.contactPhone || "";
+      document.getElementById("contactWhatsapp").value = s.contactWhatsapp || "";
       document.getElementById("contactEmail").value = s.contactEmail || "";
       document.getElementById("contactAddress").value = s.contactAddress || "";
       document.getElementById("contactUrl").value = s.contactUrl || "";
@@ -333,6 +338,7 @@
       position: selectedPosition,
       privacyPolicyUrl: document.getElementById("privacyPolicyUrl").value,
       contactPhone: document.getElementById("contactPhone").value,
+      contactWhatsapp: document.getElementById("contactWhatsapp").value,
       contactEmail: document.getElementById("contactEmail").value,
       contactAddress: document.getElementById("contactAddress").value,
       contactUrl: document.getElementById("contactUrl").value,

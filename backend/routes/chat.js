@@ -23,6 +23,7 @@ router.get("/widget-config", (req, res) => {
     language: settings.language,
     privacyPolicyUrl: settings.privacyPolicyUrl,
     contactPhone: settings.contactPhone,
+    contactWhatsapp: settings.contactWhatsapp,
     contactEmail: settings.contactEmail,
     contactAddress: settings.contactAddress,
     contactUrl: settings.contactUrl,

@@ -34,7 +34,7 @@ router.get("/settings", requireAdmin, (req, res) => {
 router.post("/settings", requireAdmin, (req, res) => {
   const {
     businessName, businessDescription, greeting, tone, language, logoUrl, position,
-    privacyPolicyUrl, contactPhone, contactEmail, contactAddress, contactUrl,
+    privacyPolicyUrl, contactPhone, contactWhatsapp, contactEmail, contactAddress, contactUrl,
   } = req.body || {};
   const updated = store.updateSettings({
     businessName,
@@ -46,6 +46,7 @@ router.post("/settings", requireAdmin, (req, res) => {
     position: position === "left" ? "left" : "right",
     privacyPolicyUrl,
     contactPhone,
+    contactWhatsapp,
     contactEmail,
     contactAddress,
     contactUrl,

@@ -28,6 +28,7 @@
   var POSITION = cfg.position || attr("data-position", "right"); // "right" sau "left"
   var PRIVACY_URL = cfg.privacyPolicyUrl || attr("data-privacy-url", "");
   var CONTACT_PHONE = cfg.contactPhone || "";
+  var CONTACT_WHATSAPP = cfg.contactWhatsapp || "";
   var CONTACT_EMAIL = cfg.contactEmail || "";
   var CONTACT_ADDRESS = cfg.contactAddress || "";
   var CONTACT_URL = cfg.contactUrl || "";
@@ -105,6 +106,7 @@
           if (remote.language) LANGUAGE = remote.language;
           if (remote.privacyPolicyUrl) PRIVACY_URL = remote.privacyPolicyUrl;
           if (remote.contactPhone) CONTACT_PHONE = remote.contactPhone;
+          if (remote.contactWhatsapp) CONTACT_WHATSAPP = remote.contactWhatsapp;
           if (remote.contactEmail) CONTACT_EMAIL = remote.contactEmail;
           if (remote.contactAddress) CONTACT_ADDRESS = remote.contactAddress;
           if (remote.contactUrl) CONTACT_URL = remote.contactUrl;
@@ -228,6 +230,7 @@
 
     var contactRows = "";
     if (CONTACT_PHONE) contactRows += '<div class="scb-contact-row"><span>Telefon</span><a href="tel:' + escapeAttr(CONTACT_PHONE.replace(/\s+/g, "")) + '">' + escapeHtml(CONTACT_PHONE) + "</a></div>";
+    if (CONTACT_WHATSAPP) contactRows += '<div class="scb-contact-row"><span>WhatsApp</span><a href="https://wa.me/' + escapeAttr(CONTACT_WHATSAPP.replace(/[^\d]/g, "")) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(CONTACT_WHATSAPP) + "</a></div>";
     if (CONTACT_EMAIL) contactRows += '<div class="scb-contact-row"><span>Email</span><a href="mailto:' + escapeAttr(CONTACT_EMAIL) + '">' + escapeHtml(CONTACT_EMAIL) + "</a></div>";
     if (CONTACT_ADDRESS) contactRows += '<div class="scb-contact-row"><span>Adresa</span><span>' + escapeHtml(CONTACT_ADDRESS) + "</span></div>";
     if (CONTACT_URL) contactRows += '<div class="scb-contact-row"><span>Contact</span><a href="' + escapeAttr(CONTACT_URL) + '" target="_blank" rel="noopener noreferrer">Deschide</a></div>';
@@ -264,8 +267,9 @@
       '<button class="scb-overlay-close" aria-label="Inchide">&times;</button>' +
       '<div class="scb-overlay-icon">' + SVG_ICON + "</div>" +
       "<h3>Cum te putem ajuta altfel</h3>" +
-      "<p>Intelegem. Pentru orice intrebare, ne poti contacta direct:</p>" +
-      (contactRows ? '<div class="scb-contact-list">' + contactRows + "</div>" : "") +
+      (contactRows
+        ? "<p>Intelegem. Pentru orice intrebare, ne poti contacta direct:</p>" + '<div class="scb-contact-list">' + contactRows + "</div>"
+        : "<p>Intelegem. Ne poti contacta direct prin datele de pe acest site, sau revino oricand sa discuti cu asistentul nostru.</p>") +
       '<button class="scb-close-wide">Inchide</button>' +
       "</div>";
     shadow.appendChild(panel);

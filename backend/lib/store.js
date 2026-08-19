@@ -51,6 +51,7 @@ class KnowledgeStore {
       // ca sa aiba o alternativa la chat - toate optionale
       privacyPolicyUrl: this.data.settings.privacyPolicyUrl || "",
       contactPhone: this.data.settings.contactPhone || "",
+      contactWhatsapp: this.data.settings.contactWhatsapp || "",
       contactEmail: this.data.settings.contactEmail || "",
       contactAddress: this.data.settings.contactAddress || "",
       contactUrl: this.data.settings.contactUrl || "",
